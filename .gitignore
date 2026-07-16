@@ -1,0 +1,32 @@
+# dependencies
+node_modules/
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# next.js
+web/.next/
+web/out/
+web/.vercel
+
+# testing
+web/coverage
+
+# env files — never commit real secrets
+.env
+.env.local
+.env*.local
+!.env.example
+
+# misc
+.DS_Store
+*.pem
+*.log
+
+# typescript
+*.tsbuildinfo
+web/next-env.d.ts

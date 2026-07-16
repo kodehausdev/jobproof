@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+/* Console dark mode is scoped to a `.dark` wrapper (ThemeProvider), not
+   <html> — so `dark:` classes key off that ancestor instead of the default
+   prefers-color-scheme media query. Login/signup (separate cream palette)
+   are outside that subtree and never see it. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --font-sans: var(--font-plex-sans), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  /* Onboarding-only (signup wizard + PaymentGate) — see layout.tsx */
+  --font-display: var(--font-fraunces), serif;
+  --font-onboarding: var(--font-figtree), system-ui, sans-serif;
+
+  --color-terracotta: #c96f4a;
+  --color-terracotta-dark: #a85a3a;
+  --color-cream-page: #f5f1ea;
+  --color-cream: #fffaf4;
+  --color-cream-input: #fffdfb;
+  --color-cream-border: #ece0d2;
+  --color-cream-muted: #8a7869;
+  --color-cream-faint: #a8917d;
+  --color-cream-label: #5c4f42;
+  --color-ink: #2b2420;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Chrome/Edge paint autofilled inputs with their own blue tint, overriding
+   our background regardless of the class applied — force it back to the
+   onboarding cream palette (login + signup email/password fields). */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--color-ink);
+  box-shadow: 0 0 0 1000px var(--color-cream-input) inset;
+  border-color: var(--color-cream-border);
+  transition: background-color 5000s ease-in-out 0s;
+}
