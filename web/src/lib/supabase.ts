@@ -3,7 +3,7 @@
 // pages fall back to the engine's live SSE feed so dev works without keys.
 //
 // ⚠ Read policies are currently the permissive dev posture defined in
-// medlab-engine/src/db/schema.sql. Tenant-scoped RLS lands with Auth.
+// engine/src/db/schema.sql. Tenant-scoped RLS lands with Auth.
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 

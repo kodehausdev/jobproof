@@ -102,14 +102,12 @@ export function AcceptInviteForm() {
       <div className="w-full max-w-sm">
         <div className="mb-5 flex items-center gap-3">
           <div className="grid size-11 flex-none place-items-center rounded-[14px] bg-[#e8785030]">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-terracotta)" strokeWidth="2.2" strokeLinecap="round">
-              <path d="M9 3v7l-4.5 8a2 2 0 0 0 1.8 3h11.4a2 2 0 0 0 1.8-3L15 10V3" />
-              <path d="M7.5 3h9" />
-              <path d="M8 14h8" />
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-terracotta)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
             </svg>
           </div>
           <div>
-            <div className="text-[17px] font-semibold tracking-tight text-ink">MedLab AI</div>
+            <div className="text-[17px] font-semibold tracking-tight text-ink">Jobproof</div>
             <div className="text-[10px] font-semibold tracking-[0.08em] text-cream-faint uppercase">
               AI Receptionist · Console
             </div>

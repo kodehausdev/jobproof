@@ -3,20 +3,23 @@
 // message). Argument whitelists here are also what hipaa.guardToolArgs
 // enforces — the schema IS the collection policy.
 
+// Placeholder service catalog — broad enough to fit most home-service
+// trades for demo purposes. Swap for the real launch service list
+// (see CLAUDE.md: tool vocabulary needs real input on what ships first).
 const TEST_CATALOG = [
-  { code: 'BLOOD_DRAW', name: 'Blood Draw', duration_min: 15 },
-  { code: 'LIPID_PANEL', name: 'Lipid Panel', duration_min: 15 },
-  { code: 'PCR_SCAN', name: 'PCR Scan', duration_min: 20 },
-  { code: 'CBC', name: 'Complete Blood Count (CBC)', duration_min: 15 },
-  { code: 'A1C', name: 'Hemoglobin A1C', duration_min: 15 },
-  { code: 'URINALYSIS', name: 'Urinalysis', duration_min: 10 },
+  { code: 'SERVICE_CALL', name: 'Service Call / Diagnostic', duration_min: 30 },
+  { code: 'REPAIR', name: 'Repair', duration_min: 60 },
+  { code: 'INSTALLATION', name: 'Installation', duration_min: 90 },
+  { code: 'MAINTENANCE', name: 'Routine Maintenance', duration_min: 45 },
+  { code: 'INSPECTION', name: 'Inspection', duration_min: 30 },
+  { code: 'EMERGENCY_SERVICE', name: 'Emergency Service', duration_min: 30 },
 ];
 
 const functionDeclarations = [
   {
     name: 'list_available_tests',
     description:
-      'List the lab tests this location offers. Use when the caller asks what tests are available or names a test you cannot match to the catalog.',
+      'List the services this location offers. Use when the caller asks what services are available or names a service you cannot match to the catalog.',
     parameters: { type: 'OBJECT', properties: {} },
   },
   {
@@ -41,11 +44,11 @@ const functionDeclarations = [
   {
     name: 'book_appointment',
     description:
-      'Book a lab appointment. Only call once you have confirmed patient name, test type, date and time slot with the caller. Do NOT ask for a phone number — the system books against caller ID automatically. NEVER pass medical history, symptoms, diagnoses or any health details — they are not accepted.',
+      'Book a service appointment. Only call once you have confirmed customer name, service type, date and time slot with the caller. Do NOT ask for a phone number — the system books against caller ID automatically. NEVER pass payment card numbers, CVVs, bank details, or SSNs — they are not accepted.',
     parameters: {
       type: 'OBJECT',
       properties: {
-        patient_name: { type: 'STRING', description: 'Patient full name.' },
+        patient_name: { type: 'STRING', description: 'Customer full name.' },
         phone_number: {
           type: 'STRING',
           description:
@@ -53,7 +56,7 @@ const functionDeclarations = [
         },
         test_type: {
           type: 'STRING',
-          description: `One of the catalog test names: ${TEST_CATALOG.map(t => t.name).join(', ')}.`,
+          description: `One of the catalog service names: ${TEST_CATALOG.map(t => t.name).join(', ')}.`,
         },
         date: { type: 'STRING', description: 'YYYY-MM-DD.' },
         time_slot: { type: 'STRING', description: 'HH:MM 24h, on a 30-minute boundary.' },
@@ -64,7 +67,7 @@ const functionDeclarations = [
   {
     name: 'find_my_appointments',
     description:
-      'Look up the caller\'s upcoming confirmed appointments at this lab, matched automatically by their caller ID. Use before cancelling or rescheduling, or when the caller asks about an existing appointment. Takes no arguments.',
+      'Look up the caller\'s upcoming confirmed appointments at this business, matched automatically by their caller ID. Use before cancelling or rescheduling, or when the caller asks about an existing appointment. Takes no arguments.',
     parameters: { type: 'OBJECT', properties: {} },
   },
   {

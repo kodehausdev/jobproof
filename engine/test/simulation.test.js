@@ -4,7 +4,7 @@
 //  - HTTP goes through a real Express server on an ephemeral port
 //
 // Primary scenario (per spec): inbound call/text —
-//   "Hi, I need to get a lipid panel done this Thursday morning around 10 AM.
+//   "Hi, I need a repair done this Thursday morning around 10 AM.
 //    My name is Alex."
 // Reference "today" is Sat 2026-07-04, so "this Thursday" = 2026-07-09.
 
@@ -17,14 +17,14 @@ const { createMemoryStore } = require('../src/db/client');
 const { createToolHandlers } = require('../src/services/tools/handlers');
 const { sanitizeAppointment, guardToolArgs, ComplianceError } =
   require('../src/compliance/hipaa');
-const { redactText, containsHealthHistory } = require('../src/compliance/redact');
+const { redactText, containsRestrictedContent } = require('../src/compliance/redact');
 const { createSessionStore, compressHistory } = require('../src/services/session');
 const { muLawEncodeSample, muLawDecodeSample } = require('../src/services/geminiLive');
 const { TOOL_ARG_WHITELIST } = require('../src/services/tools/schemas');
 
 const TENANT = {
   id: 'test-lab',
-  labName: 'BrightPath Diagnostics',
+  labName: 'Ironclad Home Services',
   timezone: 'America/New_York',
   openHour: 8,
   closeHour: 17,
@@ -34,7 +34,7 @@ const NOW = new Date('2026-07-04T12:00:00Z'); // Saturday
 const THURSDAY = '2026-07-09';
 const CALLER = '+15551234567';
 const ALEX_UTTERANCE =
-  'Hi, I need to get a lipid panel done this Thursday morning around 10 AM. My name is Alex.';
+  'Hi, I need a repair done this Thursday morning around 10 AM. My name is Alex.';
 
 /**
  * Scripted Gemini mock: pops one canned step per generate() call.
@@ -67,7 +67,7 @@ function alexBookingScript() {
           args: {
             patient_name: 'Alex',
             phone_number: CALLER,
-            test_type: 'Lipid Panel',
+            test_type: 'Repair',
             date: THURSDAY,
             time_slot: '10:00',
           },
@@ -75,7 +75,7 @@ function alexBookingScript() {
       ],
     },
     {
-      text: `You're all set, Alex — Lipid Panel on Thursday July 9th at 10 AM at BrightPath Diagnostics. Anything else?`,
+      text: `You're all set, Alex — Repair on Thursday July 9th at 10 AM at Ironclad Home Services. Anything else?`,
     },
   ]);
 }
@@ -125,7 +125,7 @@ test('voice: full booking flow returns confirmation TwiML and persists a clean r
     const greet = await postForm(port, '/webhook/voice', { From: CALLER, CallSid: 'CA1' });
     assert.equal(greet.status, 200);
     assert.match(greet.body, /<Gather input="speech"/);
-    assert.match(greet.body, /BrightPath Diagnostics/);
+    assert.match(greet.body, /Ironclad Home Services/);
 
     // Caller speaks the scenario utterance
     const turn = await postForm(port, '/webhook/voice/turn', {
@@ -137,7 +137,7 @@ test('voice: full booking flow returns confirmation TwiML and persists a clean r
 
     // Confirmation is spoken back and the line stays open for follow-ups
     assert.match(turn.body, /<Say[^>]*>You&apos;re all set, Alex/);
-    assert.match(turn.body, /Lipid Panel on Thursday July 9th at 10 AM/);
+    assert.match(turn.body, /Repair on Thursday July 9th at 10 AM/);
     assert.match(turn.body, /<Gather/);
 
     // The mock model was actually prompted with the caller's words
@@ -154,7 +154,7 @@ test('voice: full booking flow returns confirmation TwiML and persists a clean r
     const appt = store.appointments[0];
     assert.equal(appt.patient_name, 'Alex');
     assert.equal(appt.phone_number, CALLER);
-    assert.equal(appt.test_type, 'Lipid Panel');
+    assert.equal(appt.test_type, 'Repair');
     assert.equal(appt.date, THURSDAY);
     assert.equal(appt.time_slot, '10:00');
     assert.equal(appt.channel, 'voice');
@@ -193,7 +193,7 @@ test('whatsapp: inbound text is batched, booked, and confirmed via outbound send
 
     assert.equal(sent[0].to, waFrom);
     assert.match(sent[0].body, /You're all set, Alex/);
-    assert.match(sent[0].body, /Lipid Panel/);
+    assert.match(sent[0].body, /Repair/);
 
     const appt = store.appointments[0];
     assert.equal(store.appointments.length, 1);
@@ -212,70 +212,70 @@ test('whatsapp: inbound text is batched, booked, and confirmed via outbound send
 });
 
 // ══════════════════════════════════════════════════════════════
-// 3. HIPAA GUARDRAILS
+// 3. PRIVACY GUARDRAILS
 // ══════════════════════════════════════════════════════════════
-test('hipaa: non-whitelisted tool args are stripped before execution', () => {
+test('privacy: non-whitelisted tool args are stripped before execution', () => {
   const { clean, stripped } = guardToolArgs(
     'book_appointment',
     {
       patient_name: 'Alex',
       phone_number: CALLER,
-      test_type: 'Lipid Panel',
+      test_type: 'Repair',
       date: THURSDAY,
       time_slot: '10:00',
-      medical_history: 'type 2, on metformin', // hallucinated field
-      insurance_id: 'ABC123456',
+      preferred_technician: 'Sam', // hallucinated field
+      referral_source: 'Google',
     },
     TOOL_ARG_WHITELIST.book_appointment
   );
-  assert.deepEqual(stripped.sort(), ['insurance_id', 'medical_history']);
-  assert.equal(clean.medical_history, undefined);
+  assert.deepEqual(stripped.sort(), ['preferred_technician', 'referral_source']);
+  assert.equal(clean.preferred_technician, undefined);
   assert.equal(clean.patient_name, 'Alex');
 });
 
-test('hipaa: health-history content inside a whitelisted field is a hard rejection', () => {
+test('privacy: restricted content (card number) inside a whitelisted field is a hard rejection', () => {
   assert.throws(
     () => guardToolArgs(
       'book_appointment',
-      { patient_name: 'Alex, diabetic patient' },
+      { patient_name: 'Alex — card number 4111 1111 1111 1111' },
       TOOL_ARG_WHITELIST.book_appointment
     ),
     ComplianceError
   );
 });
 
-test('hipaa: engine refuses to store a booking carrying diagnosis text, stores nothing', async () => {
+test('privacy: engine refuses to store a booking carrying a card number, stores nothing', async () => {
   const store = createMemoryStore();
   const generateFn = scriptedModel([
     {
       functionCalls: [{
         name: 'book_appointment',
         args: {
-          patient_name: 'Alex — my doctor said I have high cholesterol',
+          patient_name: 'Alex — my card number is 4111 1111 1111 1111',
           phone_number: CALLER,
-          test_type: 'Lipid Panel',
+          test_type: 'Repair',
           date: THURSDAY,
           time_slot: '10:00',
         },
       }],
     },
-    { text: "You don't need to share any medical details with me — could I have just your name?" },
+    { text: "You don't need to share any payment details with me — could I have just your name?" },
   ]);
   const engine = createEngine({ store, tenant: TENANT, generateFn, now: NOW });
 
   const { reply, bookedNow } = await engine.processTurn({
-    channel: 'voice', from: CALLER, text: 'booking attempt with PHI',
+    channel: 'voice', from: CALLER, text: 'booking attempt with a card number',
   });
 
   assert.equal(bookedNow, false);
   assert.equal(store.appointments.length, 0, 'no record may be written');
-  assert.match(reply, /medical details/i);
+  assert.match(reply, /payment details/i);
 });
 
-test('hipaa: sanitizeAppointment whitelists fields and rejects PHI in values', () => {
+test('privacy: sanitizeAppointment whitelists fields and rejects restricted content in values', () => {
   const { record, dropped } = sanitizeAppointment({
     tenant_id: 't', patient_name: 'Alex', phone_number: CALLER,
-    test_type: 'Lipid Panel', date: THURSDAY, time_slot: '10:00',
+    test_type: 'Repair', date: THURSDAY, time_slot: '10:00',
     channel: 'voice', status: 'confirmed', created_at: 'x',
     diagnosis: 'should never persist', raw_transcript: 'should never persist',
   });
@@ -283,21 +283,20 @@ test('hipaa: sanitizeAppointment whitelists fields and rejects PHI in values', (
   assert.equal(Object.keys(record).length, 9);
 
   assert.throws(
-    () => sanitizeAppointment({ patient_name: 'Alex, pregnant' }),
+    () => sanitizeAppointment({ patient_name: 'Alex, card 4111111111111111' }),
     ComplianceError
   );
 });
 
-test('hipaa: log redaction masks SSN, DOB, insurance IDs and phone tails', () => {
+test('privacy: log redaction masks SSNs, card numbers, and phone tails', () => {
   const dirty =
-    'Alex 555-12-3456, DOB: 01/02/1980, member id: XZ99887766, call +1 555 123 4567';
+    'Alex 555-12-3456, card 4111111111111111, call +1 555 123 4567';
   const clean = redactText(dirty);
   assert.doesNotMatch(clean, /555-12-3456/);
-  assert.doesNotMatch(clean, /01\/02\/1980/);
-  assert.doesNotMatch(clean, /XZ99887766/);
+  assert.doesNotMatch(clean, /4111111111111111/);
   assert.match(clean, /\[PHONE-\*\*\*\*4567\]/);
-  assert.equal(containsHealthHistory('I am on metformin for my diabetes'), 'diabet');
-  assert.equal(containsHealthHistory('book me a blood draw at ten'), null);
+  assert.equal(containsRestrictedContent('my card number is 4111111111111111'), 'card number');
+  assert.equal(containsRestrictedContent('book me a repair at ten'), null);
 });
 
 // ══════════════════════════════════════════════════════════════
@@ -307,16 +306,16 @@ test('tools: list_available_tests returns the catalog', async () => {
   const exec = createToolHandlers({ store: createMemoryStore(), tenant: TENANT });
   const out = await exec.execute('list_available_tests', {}, {});
   const names = out.tests.map(t => t.name);
-  assert.ok(names.includes('Blood Draw'));
-  assert.ok(names.includes('Lipid Panel'));
-  assert.ok(names.includes('PCR Scan'));
+  assert.ok(names.includes('Service Call / Diagnostic'));
+  assert.ok(names.includes('Repair'));
+  assert.ok(names.includes('Installation'));
 });
 
 test('tools: capacity enforcement — a full slot rejects further bookings', async () => {
   const store = createMemoryStore();
   const exec = createToolHandlers({ store, tenant: TENANT });
   const base = {
-    phone_number: CALLER, test_type: 'Blood Draw', date: THURSDAY, time_slot: '09:00',
+    phone_number: CALLER, test_type: 'Service Call / Diagnostic', date: THURSDAY, time_slot: '09:00',
   };
 
   const a = await exec.execute('book_appointment', { ...base, patient_name: 'P One' }, {});
@@ -338,9 +337,9 @@ test('tools: fuzzy test-type matching and validation errors', async () => {
 
   const ok = await exec.execute('book_appointment', {
     patient_name: 'Alex', phone_number: CALLER,
-    test_type: 'lipid', date: THURSDAY, time_slot: '10:30',
+    test_type: 'diagnostic', date: THURSDAY, time_slot: '10:30',
   }, {});
-  assert.equal(ok.test_type, 'Lipid Panel');
+  assert.equal(ok.test_type, 'Service Call / Diagnostic');
 
   const badDate = await exec.execute('check_availability', { date: 'Thursday' }, {});
   assert.match(badDate.error, /YYYY-MM-DD/);
@@ -349,7 +348,7 @@ test('tools: fuzzy test-type matching and validation errors', async () => {
     patient_name: 'Alex', phone_number: CALLER,
     test_type: 'MRI', date: THURSDAY, time_slot: '10:00',
   }, {});
-  assert.match(badTest.error, /Unknown test/);
+  assert.match(badTest.error, /Unknown service/);
 });
 
 // ══════════════════════════════════════════════════════════════
@@ -358,7 +357,7 @@ test('tools: fuzzy test-type matching and validation errors', async () => {
 test('session: history past the cap compresses into a facts summary', () => {
   const sessions = createSessionStore();
   const s = sessions.get('voice', CALLER);
-  s.facts = { patient_name: 'Alex', test_type: 'Lipid Panel', date: THURSDAY, time_slot: '10:00' };
+  s.facts = { patient_name: 'Alex', test_type: 'Repair', date: THURSDAY, time_slot: '10:00' };
 
   for (let i = 0; i < 20; i++) {
     s.history.push({ role: i % 2 ? 'model' : 'user', parts: [{ text: `turn ${i}` }] });
@@ -367,7 +366,7 @@ test('session: history past the cap compresses into a facts summary', () => {
 
   assert.equal(s.history.length, 9); // 1 summary + 8 recent
   const summary = s.history[0].parts[0].text;
-  assert.match(summary, /patient name: Alex/);
+  assert.match(summary, /customer name: Alex/);
   assert.match(summary, /slot: 10:00/);
   assert.doesNotMatch(summary, /turn 0/, 'raw early transcript must not survive compression');
 });
@@ -428,13 +427,13 @@ test('dashboard: booking flow streams call.answered + booking.confirmed over SSE
     assert.equal(hit.channel, 'voice');
     assert.equal(hit.phone_tail, '4567'); // last 4 only — full number never leaves
     assert.equal(hit.data.patient_name, 'Alex');
-    assert.equal(hit.data.test_type, 'Lipid Panel');
+    assert.equal(hit.data.test_type, 'Repair');
     assert.equal(hit.data.date, THURSDAY);
     assert.equal(hit.data.time_slot, '10:00');
     assert.doesNotMatch(JSON.stringify(hit), /\+15551234567/, 'raw phone must not appear');
 
     const state = await (await fetch(`http://127.0.0.1:${port}/api/dashboard/state`)).json();
-    assert.equal(state.tenant.lab_name, 'BrightPath Diagnostics');
+    assert.equal(state.tenant.lab_name, 'Ironclad Home Services');
     assert.equal(state.counters.calls_answered, 1);
     assert.equal(state.counters.bookings_confirmed, 1);
     assert.ok(state.recent.some(e => e.type === 'booking.confirmed'));
@@ -444,29 +443,29 @@ test('dashboard: booking flow streams call.answered + booking.confirmed over SSE
   }
 });
 
-test('dashboard: ComplianceError emits a PHI-free guardrail.redacted event', async () => {
+test('dashboard: ComplianceError emits a content-free guardrail.redacted event', async () => {
   const store = createMemoryStore();
   const generateFn = scriptedModel([
     {
       functionCalls: [{
         name: 'book_appointment',
         args: {
-          patient_name: 'Alex — my doctor said I have high cholesterol',
+          patient_name: 'Alex — my card number is 4111 1111 1111 1111',
           phone_number: CALLER,
-          test_type: 'Lipid Panel',
+          test_type: 'Repair',
           date: THURSDAY,
           time_slot: '10:00',
         },
       }],
     },
-    { text: "You don't need to share any medical details with me — just your name, please." },
+    { text: "You don't need to share any payment details with me — just your name, please." },
   ]);
   const engine = createEngine({ store, tenant: TENANT, generateFn, now: NOW });
 
   const received = [];
   engine.events.subscribe(e => received.push(e));
 
-  await engine.processTurn({ channel: 'voice', from: CALLER, text: 'booking attempt with PHI' });
+  await engine.processTurn({ channel: 'voice', from: CALLER, text: 'booking attempt with a card number' });
 
   const guardrail = received.find(e => e.type === 'guardrail.redacted');
   assert.ok(guardrail, 'guardrail.redacted must be emitted');
@@ -476,7 +475,7 @@ test('dashboard: ComplianceError emits a PHI-free guardrail.redacted event', asy
 
   // The event itself must not leak what the caller said or which term matched.
   const wire = JSON.stringify(guardrail).toLowerCase();
-  assert.doesNotMatch(wire, /cholesterol|doctor said|diagnos/);
+  assert.doesNotMatch(wire, /4111|card number/);
   assert.equal(store.appointments.length, 0);
   assert.equal(engine.events.snapshot().counters.guardrail_events, 1);
 });
@@ -540,7 +539,7 @@ test('routing: the To number selects the tenant; unmatched falls back to default
     text: ALEX_UTTERANCE,
   });
   assert.equal(r1.tenant.id, 'lab2');
-  assert.match(r1.reply, /Lipid Panel/);
+  assert.match(r1.reply, /Repair/);
 
   // Same caller texts an unknown number → default tenant.
   active = s2;
@@ -564,7 +563,7 @@ test('routing: the To number selects the tenant; unmatched falls back to default
 
   // System prompts carried each lab's own identity.
   assert.match(s1.seen[0].systemInstruction, /Lakeside Labs/);
-  assert.match(s2.seen[0].systemInstruction, /BrightPath Diagnostics/);
+  assert.match(s2.seen[0].systemInstruction, /Ironclad Home Services/);
 
   // Events are tenant-tagged with scoped counters.
   assert.equal(engine.events.snapshot('lab2').counters.bookings_confirmed, 1);
@@ -715,7 +714,7 @@ test('dashboard: engine seeds counters + ring buffer from the audit trail at boo
         channel: 'whatsapp', phone_tail: '3985', data: {}, created_at: '2026-07-07T11:48:35Z' },
       { id: 8, tenant_id: 'test-lab', event_id: 'evt-8', type: 'booking.confirmed',
         channel: 'whatsapp', phone_tail: '3985',
-        data: { patient_name: 'Pete Burg', test_type: 'PCR Scan' },
+        data: { patient_name: 'Pete Burg', test_type: 'Installation' },
         created_at: '2026-07-07T11:54:27Z' },
       { id: 3, tenant_id: 'other-lab', event_id: 'evt-3', type: 'call.answered',
         channel: 'voice', phone_tail: '0042', data: {}, created_at: '2026-07-05T14:22:00Z' },
@@ -878,7 +877,7 @@ test('disclosure: voice greeting and first WhatsApp reply identify the AI', asyn
   const first = await engine.processTurn({
     channel: 'whatsapp', from: `whatsapp:${CALLER}`, text: 'hi',
   });
-  assert.match(first.reply, /^You're chatting with BrightPath Diagnostics's automated AI assistant\./);
+  assert.match(first.reply, /^You're chatting with Ironclad Home Services's automated AI assistant\./);
 
   // …and later turns don't repeat it.
   const second = await engine.processTurn({
@@ -895,14 +894,14 @@ test('tools: cancel flow — find_my_appointments + cancel_appointment frees the
   const store = createMemoryStore();
   await store.insertAppointment({
     tenant_id: 'test-lab', patient_name: 'Alex', phone_number: CALLER,
-    test_type: 'Lipid Panel', date: THURSDAY, time_slot: '10:00',
+    test_type: 'Repair', date: THURSDAY, time_slot: '10:00',
     channel: 'voice', status: 'confirmed', created_at: NOW.toISOString(),
   });
 
   const generateFn = scriptedModel([
     { functionCalls: [{ name: 'find_my_appointments', args: {} }] },
     { functionCalls: [{ name: 'cancel_appointment', args: { booking_id: 1 } }] },
-    { text: 'Done — your Lipid Panel on Thursday at 10 AM is cancelled. Anything else?' },
+    { text: 'Done — your Repair on Thursday at 10 AM is cancelled. Anything else?' },
   ]);
   const engine = createEngine({ store, tenant: TENANT, generateFn, now: NOW });
 
@@ -924,7 +923,7 @@ test('tools: cancel_appointment rejects a booking_id that is not the caller own 
   const store = createMemoryStore();
   await store.insertAppointment({
     tenant_id: 'test-lab', patient_name: 'Alex', phone_number: CALLER,
-    test_type: 'Lipid Panel', date: THURSDAY, time_slot: '10:00',
+    test_type: 'Repair', date: THURSDAY, time_slot: '10:00',
     channel: 'voice', status: 'confirmed', created_at: NOW.toISOString(),
   });
 
@@ -970,7 +969,7 @@ test('sms: text-to-book flows end to end — disclosure, tenant-number reply, sm
     assert.equal(sent[0].to, CALLER);
     assert.equal(sent[0].via, LAB_NUMBER);
     // First text reply carries the AI disclosure, then the confirmation
-    assert.match(sent[0].body, /^You're chatting with BrightPath Diagnostics's automated AI assistant\./);
+    assert.match(sent[0].body, /^You're chatting with Ironclad Home Services's automated AI assistant\./);
     assert.match(sent[0].body, /You're all set, Alex/);
 
     // Appointment row is channel-tagged 'sms'

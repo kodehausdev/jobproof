@@ -34,10 +34,10 @@ const config = {
 
   tenant: {
     id: process.env.TENANT_ID || 'default',
-    labName: process.env.LAB_NAME || 'MedLab',
-    timezone: process.env.LAB_TIMEZONE || 'America/New_York',
-    openHour: Number(process.env.LAB_OPEN_HOUR || 8),
-    closeHour: Number(process.env.LAB_CLOSE_HOUR || 17),
+    labName: process.env.BUSINESS_NAME || 'Jobproof',
+    timezone: process.env.BUSINESS_TIMEZONE || 'America/New_York',
+    openHour: Number(process.env.BUSINESS_OPEN_HOUR || 8),
+    closeHour: Number(process.env.BUSINESS_CLOSE_HOUR || 17),
     slotCapacity: Number(process.env.SLOT_CAPACITY || 2),
   },
 };

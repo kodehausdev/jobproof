@@ -147,8 +147,8 @@ function createEngine(overrides = {}) {
       }, {
         status: 'emergency_redirected',
         summary:
-          'Caller language suggested a possible medical emergency. ' +
-          'Scripted 911/ER redirect delivered; no booking action taken.',
+          'Caller language suggested a possible emergency. ' +
+          'Scripted 911 redirect delivered; no booking action taken.',
       });
       return {
         reply: emergencyScript(channel),

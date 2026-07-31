@@ -17,7 +17,7 @@ import { createContext, useContext, useSyncExternalStore, type ReactNode } from 
 
 export type Theme = "light" | "dark";
 
-const STORAGE_KEY = "medlab-console-theme";
+const STORAGE_KEY = "jobproof-console-theme";
 
 let currentTheme: Theme = "light";
 let initialized = false;

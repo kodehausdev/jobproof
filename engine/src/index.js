@@ -1,4 +1,4 @@
-// MedLab AI Receptionist — entrypoint.
+// Jobproof — entrypoint.
 // createApp() is exported separately so the test suite can build the app
 // with injected mocks and never open a port or touch the network.
 
@@ -56,7 +56,7 @@ if (require.main === module) {
       const auth = config.gemini.useVertex
         ? `vertex-adc (${config.gemini.project || 'NO PROJECT SET'} / ${config.gemini.location})`
         : (config.gemini.apiKey ? 'api-key' : 'none — set GEMINI_API_KEY or GEMINI_USE_VERTEX');
-      safeLog(`🚀 MedLab Receptionist [${engine.tenant.labName}] on :${config.port}`);
+      safeLog(`🚀 Jobproof [${engine.tenant.labName}] on :${config.port}`);
       safeLog(`   store=${engine.store.kind} model=${config.gemini.model} auth=${auth}`);
     });
 

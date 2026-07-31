@@ -1,19 +1,22 @@
-// HIPAA guardrail layer — minimum-necessary enforcement.
+// Privacy guardrail layer — minimum-necessary enforcement for a trades
+// receptionist (no HIPAA obligation here; see compliance/redact.js for why
+// the checks target payment-card/SSN content instead of health data).
 //
 // Three controls, applied in order of authority:
 //   1. sanitizeAppointment(): the ONLY path to a database write. Whitelist
 //      of allowed fields; anything else is dropped and reported.
 //   2. guardToolArgs(): intercepts Gemini function-call payloads BEFORE the
 //      backend executes them. Strips unknown keys, rejects any argument
-//      value carrying unstructured health-history content.
-//   3. safeLog(): all runtime logging routes through PHI redaction.
+//      value carrying a payment-card number, CVV, or SSN.
+//   3. safeLog(): all runtime logging routes through redaction.
 //      Raw transcripts are never written to disk or database — conversation
 //      state lives in memory with a TTL (see services/session.js).
 
-const { redactText, redactObject, containsHealthHistory } = require('./redact');
+const { redactText, redactObject, containsRestrictedContent } = require('./redact');
 
-// The complete set of patient data this system is permitted to store.
-// Name, phone, test type, scheduling fields, and operational metadata. Nothing else.
+// The complete set of customer data this system is permitted to store.
+// Name, phone, service type, scheduling fields, and operational metadata.
+// Nothing else — in particular, no payment details ever land here.
 const ALLOWED_APPOINTMENT_FIELDS = new Set([
   'tenant_id',
   'patient_name',
@@ -30,14 +33,15 @@ class ComplianceError extends Error {
   constructor(message, code) {
     super(message);
     this.name = 'ComplianceError';
-    this.code = code || 'PHI_REJECTED';
+    this.code = code || 'RESTRICTED_CONTENT_REJECTED';
   }
 }
 
 /**
  * Final gate before persistence. Returns { record, dropped } where record
  * contains only whitelisted fields and dropped lists what was excluded.
- * Throws if a whitelisted free-text field itself carries health history.
+ * Throws if a whitelisted free-text field itself carries restricted content
+ * (a payment-card number, CVV, or SSN).
  */
 function sanitizeAppointment(input) {
   const record = {};
@@ -48,10 +52,10 @@ function sanitizeAppointment(input) {
       continue;
     }
     if (typeof value === 'string') {
-      const hit = containsHealthHistory(value);
+      const hit = containsRestrictedContent(value);
       if (hit) {
         throw new ComplianceError(
-          `Field "${key}" contains health-history content (matched "${hit}") and cannot be stored.`
+          `Field "${key}" contains restricted content (matched "${hit}") and cannot be stored.`
         );
       }
       record[key] = value.trim();
@@ -65,8 +69,8 @@ function sanitizeAppointment(input) {
 /**
  * Intercepts Gemini tool-call arguments before execution.
  * - Unknown keys are silently stripped (model hallucinated a field).
- * - Health-history content in any value is a hard rejection: the tool
- *   handler returns a structured refusal the model must relay.
+ * - A payment-card number, CVV, or SSN in any value is a hard rejection:
+ *   the tool handler returns a structured refusal the model must relay.
  */
 function guardToolArgs(toolName, args, allowedKeys) {
   const clean = {};
@@ -77,11 +81,11 @@ function guardToolArgs(toolName, args, allowedKeys) {
       continue;
     }
     if (typeof value === 'string') {
-      const hit = containsHealthHistory(value);
+      const hit = containsRestrictedContent(value);
       if (hit) {
         throw new ComplianceError(
-          `Tool "${toolName}" argument "${key}" contains health-history content. ` +
-          `Collection is restricted to name, phone, test type and time.`
+          `Tool "${toolName}" argument "${key}" contains restricted content. ` +
+          `Collection is restricted to name, phone, service type and time.`
         );
       }
     }
@@ -91,7 +95,8 @@ function guardToolArgs(toolName, args, allowedKeys) {
 }
 
 /**
- * PHI-safe logger. Everything the runtime prints goes through redaction.
+ * Redaction-safe logger. Everything the runtime prints goes through
+ * redaction before it hits the console.
  */
 function safeLog(...parts) {
   const rendered = parts.map(p =>

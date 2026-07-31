@@ -45,7 +45,7 @@ function buildDaySlots(openHour: number, closeHour: number) {
 const RULES = [
   {
     t: "Slot capacity",
-    d: "Never books more chairs than are physically available in a single 30-minute slot.",
+    d: "Never books more jobs than there's crew capacity for in a single 30-minute slot.",
   },
   {
     t: "Business hours only",

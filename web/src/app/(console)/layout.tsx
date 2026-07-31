@@ -37,7 +37,7 @@ function ConsoleShell({ children }: { children: ReactNode }) {
             <footer className="border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
               <div className="mx-auto flex max-w-[1440px] flex-wrap items-center gap-4 px-6 py-3.5">
                 <span className="font-mono text-[11.5px] text-slate-400">
-                  MedLab AI Receptionist · console v0.1
+                  Jobproof · console v0.1
                 </span>
                 <span className="ml-auto text-[11.5px] text-slate-400 dark:text-slate-500">
                   All transcripts sanitized at ingestion — raw audio is never

@@ -41,7 +41,7 @@ function rowFor(ev: DashboardEvent) {
       test: null,
       summary:
         ev.data.summary ??
-        "PHI intercepted and redacted by the compliance layer before storage.",
+        "Restricted content intercepted and redacted by the privacy layer before storage.",
       avatar: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300",
       avatarLabel: anonymousAvatar,
     };
@@ -53,7 +53,7 @@ function rowFor(ev: DashboardEvent) {
       test: null,
       summary:
         ev.data.summary ??
-        "Caller language suggested a possible medical emergency — scripted 911/ER redirect delivered.",
+        "Caller language suggested a possible emergency — scripted 911 redirect delivered.",
       avatar: "bg-red-200 text-red-900 dark:bg-red-500/25 dark:text-red-200",
       avatarLabel: anonymousAvatar,
     };
@@ -95,7 +95,7 @@ const EMPTY_TEXT: Record<string, string> = {
   "engine-live": "Waiting for the first call — events appear here in real time.",
   "engine-unlinked":
     "No events yet. Your phone line isn't provisioned on the engine — history from the audit trail will appear here as calls happen.",
-  offline: "Engine offline. Start medlab-engine and this feed reconnects automatically.",
+  offline: "Engine offline. Start the Jobproof engine and this feed reconnects automatically.",
   connecting: "Connecting…",
 };
 
@@ -108,7 +108,7 @@ export function LiveFeed({ limit }: { limit?: number }) {
       <div className="flex flex-wrap items-center gap-2.5 border-b border-slate-200 px-4.5 py-3.5 dark:border-slate-700">
         <span className="size-2 flex-none rounded-full bg-indigo-600 [animation:pulse-dot_1.6s_ease-in-out_infinite]" />
         <h2 className="text-sm font-bold tracking-tight">
-          Live Patient Call Feed
+          Live Call Feed
         </h2>
         <span className="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-[11px] text-slate-500 dark:bg-slate-800 dark:text-slate-400">
           {events.length} events
@@ -128,8 +128,8 @@ export function LiveFeed({ limit }: { limit?: number }) {
             <path d="M12 3l7 3v6c0 4.5-3 7.7-7 9-4-1.3-7-4.5-7-9V6z" />
           </svg>
           <span className="text-[11px] font-medium text-red-900 dark:text-red-300">
-            <span className="font-bold">PHI Protection:</span> Guardrail rows
-            contain metadata only. No caller content is stored or shown.
+            <span className="font-bold">Privacy Protection:</span> Calls are
+            never recorded — customer data is encrypted in transit and at rest.
           </span>
         </span>
       </div>

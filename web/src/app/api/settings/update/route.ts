@@ -34,7 +34,7 @@ export async function POST(req: Request) {
   if (!Number.isInteger(openHour) || !Number.isInteger(closeHour) || openHour < 0 || closeHour > 23 || openHour >= closeHour)
     return NextResponse.json({ error: "Open hour must be before close hour, both within 0–23." }, { status: 400 });
   if (!Number.isInteger(slotCapacity) || slotCapacity < 1 || slotCapacity > 20)
-    return NextResponse.json({ error: "Chairs per slot must be between 1 and 20." }, { status: 400 });
+    return NextResponse.json({ error: "Jobs per slot must be between 1 and 20." }, { status: 400 });
 
   const admin = supabaseAdmin();
   const { error } = await admin

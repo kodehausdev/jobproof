@@ -43,7 +43,7 @@ export function NumberIntake() {
         <h2 className="text-lg font-bold tracking-tight">Connect your WhatsApp line</h2>
         <p className="text-sm text-slate-500 dark:text-slate-400">
           Your card is on file — no charge yet. Give us the WhatsApp Business number your
-          patients text, and we&apos;ll start configuring your engine instance.
+          customers text, and we&apos;ll start configuring your engine instance.
         </p>
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-left text-xs text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
           <span className="font-bold">Must be a number with no WhatsApp history.</span> WhatsApp

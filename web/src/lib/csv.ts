@@ -1,5 +1,5 @@
 // Client-side CSV export. No server round-trip — the console only ever
-// holds PHI-minimized rows to begin with (see audit_events / appointments
+// holds minimized rows to begin with (see audit_events / appointments
 // column comments), so there's nothing extra to redact on the way out.
 
 export function toCsv<T>(rows: T[], columns: { header: string; get: (row: T) => string }[]): string {

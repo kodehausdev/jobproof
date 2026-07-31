@@ -48,11 +48,11 @@ function badgeKind(row: AuditRow) {
   return "answered" as const;
 }
 
-function describe(row: AuditRow): { patient: string; test: string; summary: string } {
+function describe(row: AuditRow): { customer: string; test: string; summary: string } {
   const phone = row.phone_tail ? `••• ${row.phone_tail}` : "unknown";
   if (row.type === "booking.confirmed") {
     return {
-      patient: row.data.patient_name ?? "Caller",
+      customer: row.data.patient_name ?? "Caller",
       test: row.data.test_type ?? "—",
       summary:
         row.data.summary ??
@@ -61,7 +61,7 @@ function describe(row: AuditRow): { patient: string; test: string; summary: stri
   }
   if (row.type === "booking.cancelled") {
     return {
-      patient: `Caller ${phone}`,
+      customer: `Caller ${phone}`,
       test: row.data.test_type ?? "—",
       summary:
         row.data.summary ??
@@ -70,25 +70,25 @@ function describe(row: AuditRow): { patient: string; test: string; summary: stri
   }
   if (row.type === "guardrail.redacted") {
     return {
-      patient: `Caller ${phone}`,
+      customer: `Caller ${phone}`,
       test: "—",
       summary:
         row.data.summary ??
-        "PHI intercepted and redacted by the compliance layer before storage.",
+        "Restricted content intercepted and redacted by the privacy layer before storage.",
     };
   }
   if (row.type === "emergency.detected") {
     return {
-      patient: `Caller ${phone}`,
+      customer: `Caller ${phone}`,
       test: "—",
       summary:
         row.data.summary ??
-        "Caller language suggested a possible medical emergency — scripted 911/ER redirect delivered.",
+        "Caller language suggested a possible emergency — scripted 911 redirect delivered.",
     };
   }
   if (row.type === "optout.received" || row.type === "optout.restored") {
     return {
-      patient: `Caller ${phone}`,
+      customer: `Caller ${phone}`,
       test: "—",
       summary:
         row.data.summary ??
@@ -98,7 +98,7 @@ function describe(row: AuditRow): { patient: string; test: string; summary: stri
     };
   }
   return {
-    patient: `Caller ${phone}`,
+    customer: `Caller ${phone}`,
     test: "—",
     summary: `Inbound ${row.channel} conversation answered by the AI.`,
   };
@@ -131,7 +131,7 @@ function CallLogsInner() {
   function exportCsv() {
     const csv = toCsv(visible, [
       { header: "Time", get: (r) => new Date(r.created_at).toISOString() },
-      { header: "Patient", get: (r) => describe(r).patient },
+      { header: "Customer", get: (r) => describe(r).customer },
       { header: "Phone tail", get: (r) => r.phone_tail ?? "" },
       { header: "Channel", get: (r) => r.channel },
       { header: "Requested test", get: (r) => describe(r).test },
@@ -194,7 +194,7 @@ function CallLogsInner() {
 
       <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:shadow-none">
         <div className="grid grid-cols-[168px_160px_80px_150px_170px_minmax(160px,1fr)] gap-x-3 border-b border-slate-200 bg-slate-50 px-4.5 py-2 dark:border-slate-700 dark:bg-slate-800/50">
-          {["Time", "Patient", "Channel", "Requested Test", "Status", "AI Summary"].map(
+          {["Time", "Customer", "Channel", "Requested Test", "Status", "AI Summary"].map(
             (h) => (
               <span
                 key={h}
@@ -231,7 +231,7 @@ function CallLogsInner() {
                 </span>
                 <div className="min-w-0">
                   <div className="truncate text-[12.5px] font-semibold">
-                    {d.patient}
+                    {d.customer}
                   </div>
                   <div className="font-mono text-[10.5px] text-slate-400 dark:text-slate-500">
                     {row.phone_tail ? `••• ${row.phone_tail}` : ""}

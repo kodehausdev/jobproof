@@ -11,13 +11,12 @@ const TABS = [
   { href: "/overview", label: "Overview" },
   { href: "/call-logs", label: "Call Logs" },
   { href: "/scheduling", label: "Scheduling" },
-  { href: "/compliance", label: "Compliance" },
   { href: "/billing", label: "Billing" },
   { href: "/team", label: "Team" },
   { href: "/settings", label: "Settings" },
 ];
 
-function FlaskLogo() {
+function WrenchLogo() {
   return (
     <div className="grid size-8 flex-none place-items-center rounded-lg bg-gradient-to-br from-indigo-600 to-blue-600">
       <svg
@@ -28,10 +27,9 @@ function FlaskLogo() {
         stroke="#fff"
         strokeWidth="2.2"
         strokeLinecap="round"
+        strokeLinejoin="round"
       >
-        <path d="M9 3v7l-4.5 8a2 2 0 0 0 1.8 3h11.4a2 2 0 0 0 1.8-3L15 10V3" />
-        <path d="M7.5 3h9" />
-        <path d="M8 14h8" />
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
       </svg>
     </div>
   );
@@ -97,13 +95,13 @@ export function ConsoleHeader() {
       <div className="mx-auto flex max-w-[1440px] flex-col gap-2 px-4 py-2.5 md:h-15 md:flex-row md:items-center md:gap-4 md:px-6 md:py-0">
         <div className="flex items-center justify-between gap-3 md:contents">
           <div className="flex min-w-0 items-center gap-3">
-            <FlaskLogo />
+            <WrenchLogo />
             <div className="min-w-0 leading-tight">
               <div className="truncate text-sm font-bold tracking-tight">
-                {tenant?.lab_name ?? "MedLab AI"}
+                {tenant?.lab_name ?? "Jobproof"}
               </div>
               <div className="font-mono text-[10.5px] text-slate-400">
-                AVA · CONSOLE
+                JOBPROOF · CONSOLE
               </div>
             </div>
           </div>

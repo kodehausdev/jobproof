@@ -59,7 +59,7 @@ export async function POST(req: Request) {
   if (!(openHour >= 0 && closeHour <= 24 && openHour < closeHour))
     return NextResponse.json({ error: "Opening hours are invalid." }, { status: 400 });
   if (!(slotCapacity >= 1 && slotCapacity <= 12))
-    return NextResponse.json({ error: "Chairs must be between 1 and 12." }, { status: 400 });
+    return NextResponse.json({ error: "Jobs per slot must be between 1 and 12." }, { status: 400 });
 
   const admin = supabaseAdmin();
   const stripe = stripeClient();

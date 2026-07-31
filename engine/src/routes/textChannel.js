@@ -92,7 +92,7 @@ function createTextChannelRouter({ engine, send, channel, webhookPath, batchWind
       safeLog(`▶️ [${channel}] opt-in restored for ${from} [${tenant.id}]`);
       await send(
         from,
-        `You're re-subscribed to ${tenant.labName} messages. How can I help with your lab appointment?`,
+        `You're re-subscribed to ${tenant.labName} messages. How can I help with your service appointment?`,
         to
       );
       return true;

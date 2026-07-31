@@ -30,3 +30,4 @@ web/coverage
 # typescript
 *.tsbuildinfo
 web/next-env.d.ts
+CLAUDE.md

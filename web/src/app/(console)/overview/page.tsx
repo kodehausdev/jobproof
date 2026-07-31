@@ -49,8 +49,8 @@ export default function OverviewPage() {
   const provisioningActive = onboardingState === "provisioning_active";
 
   const hoursSaved = (counters.calls_answered * AVG_MINUTES_SAVED_PER_CALL) / 60;
-  // The lab's own "today", not the viewer's — matters near midnight for
-  // anyone checking the console from a different timezone than the lab.
+  // The business's own "today", not the viewer's — matters near midnight for
+  // anyone checking the console from a different timezone than the business.
   const today = formatLongDate(new Date(), tenant?.timezone);
 
   return (
@@ -63,7 +63,7 @@ export default function OverviewPage() {
           <p className="mt-0.5 text-[13px] text-slate-500 dark:text-slate-400">
             {today}
             {tenant
-              ? ` · ${tenant.lab_name} · ${tenant.slot_capacity} chairs per slot`
+              ? ` · ${tenant.lab_name} · ${tenant.slot_capacity} jobs per slot`
               : " · connecting to engine…"}
           </p>
         </div>
@@ -122,7 +122,7 @@ export default function OverviewPage() {
           <span className="absolute inset-x-0 top-0 h-[3px] bg-emerald-500" />
           <div className="flex items-center justify-between">
             <span className="text-[11.5px] font-semibold tracking-wider text-emerald-700 uppercase dark:text-emerald-400">
-              Compliance Status
+              Data Retention &amp; Privacy
             </span>
             <span className="grid size-7 flex-none place-items-center rounded-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300">
               <Icon path={ICONS.shield} />
@@ -130,15 +130,15 @@ export default function OverviewPage() {
           </div>
           <div className="mt-2.5 text-[26px] font-bold leading-none tracking-tight text-emerald-950 dark:text-emerald-100">
             {counters.guardrail_events === 0
-              ? "100% PHI-Sanitized"
-              : `${counters.guardrail_events} guardrail intercept${
+              ? "100% Verified"
+              : `${counters.guardrail_events} privacy intercept${
                   counters.guardrail_events === 1 ? "" : "s"
                 }`}
           </div>
           <div className="mt-2.5 inline-flex items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-100 px-2.5 py-1 dark:border-emerald-500/30 dark:bg-emerald-500/10">
             <span className="size-1.5 rounded-full bg-emerald-600" />
             <span className="font-mono text-[11px] font-semibold text-emerald-800 dark:text-emerald-300">
-              HIPAA GUARDRAILS ACTIVE
+              PRIVACY GUARDRAILS ACTIVE
             </span>
           </div>
         </div>

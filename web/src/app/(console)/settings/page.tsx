@@ -149,7 +149,7 @@ function SettingsForm({
         </div>
 
         <label className="mt-4 block text-xs font-semibold text-slate-600 dark:text-slate-400">
-          Chairs per slot
+          Jobs per slot
           <input
             type="number"
             min={1}
@@ -159,7 +159,7 @@ function SettingsForm({
             className="mt-1.5 w-28 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-900 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:ring-indigo-500/20"
           />
           <span className="mt-1 block text-[11px] font-normal text-slate-400 dark:text-slate-500">
-            How many patients the AI can book into the same 30-minute slot — drives the Scheduling grid directly.
+            How many jobs the AI can book into the same 30-minute slot — drives the Scheduling grid directly.
           </span>
         </label>
 

@@ -17,7 +17,7 @@
 //   booking.confirmed  → { booking_id, patient_name, test_type, date, time_slot,
 //                          status: "confirmed", summary }
 //   guardrail.redacted → { tool, code, status: "guardrail_redacted", summary }
-//     Deliberately carries NO caller content and NO matched health-history term —
+//     Deliberately carries NO caller content and NO matched restricted term —
 //     only the fact that the compliance layer intercepted something.
 //   emergency.detected → { status: "emergency_redirected", summary }
 //     Scripted 911 redirect fired. Same posture: no caller content, no

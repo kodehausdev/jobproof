@@ -53,7 +53,7 @@ function createSessionStore({ ttlMs = SESSION_TTL_MS } = {}) {
  * everything but the most recent turns into a single deterministic
  * "known facts" line built from the structured slots — never from raw
  * transcript text. Costs zero extra model calls and carries zero
- * unstructured PHI forward.
+ * unstructured restricted content forward.
  */
 function compressHistory(session) {
   if (session.history.length <= MAX_HISTORY_TURNS) return session.history;
@@ -61,8 +61,8 @@ function compressHistory(session) {
   const recent = session.history.slice(-8);
   const f = session.facts;
   const factBits = [
-    f.patient_name && `patient name: ${f.patient_name}`,
-    f.test_type && `test: ${f.test_type}`,
+    f.patient_name && `customer name: ${f.patient_name}`,
+    f.test_type && `service: ${f.test_type}`,
     f.date && `date: ${f.date}`,
     f.time_slot && `slot: ${f.time_slot}`,
   ].filter(Boolean);

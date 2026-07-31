@@ -15,10 +15,10 @@ import { useTheme } from "./theme-provider";
 const PAGES = [
   { label: "Overview", href: "/overview", keywords: "dashboard kpi home" },
   { label: "Call Logs", href: "/call-logs", keywords: "audit trail history events" },
-  { label: "Scheduling", href: "/scheduling", keywords: "chairs slots calendar appointments day grid" },
-  { label: "Compliance", href: "/compliance", keywords: "hipaa guardrail baa audit phi" },
+  { label: "Scheduling", href: "/scheduling", keywords: "capacity slots calendar appointments day grid" },
+  { label: "Privacy & Data Retention", href: "/compliance", keywords: "privacy guardrail audit retention security" },
   { label: "Billing", href: "/billing", keywords: "invoices plan stripe payment card" },
-  { label: "Settings", href: "/settings", keywords: "hours timezone capacity lab name" },
+  { label: "Settings", href: "/settings", keywords: "hours timezone capacity business name" },
 ] as const;
 
 function SearchIcon() {

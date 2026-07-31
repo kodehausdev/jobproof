@@ -29,9 +29,9 @@ const figtree = Figtree({
 });
 
 export const metadata: Metadata = {
-  title: "MedLab AI — Console",
+  title: "Jobproof — Console",
   description:
-    "Front-desk operations console for the MedLab AI Receptionist — live call feed, scheduling, and HIPAA guardrail audit.",
+    "Front-desk operations console for Jobproof — live call feed, scheduling, and privacy guardrail audit.",
 };
 
 export default function RootLayout({

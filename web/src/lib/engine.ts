@@ -1,5 +1,5 @@
-// Types for the medlab-engine dashboard feed.
-// Envelope contract: medlab-engine/src/services/events.js
+// Types for the Jobproof engine dashboard feed.
+// Envelope contract: engine/src/services/events.js
 
 export const ENGINE_URL =
   process.env.NEXT_PUBLIC_ENGINE_URL ?? "http://localhost:3000";

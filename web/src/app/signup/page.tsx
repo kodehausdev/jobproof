@@ -12,15 +12,13 @@ const TIMEZONES = [
   "America/Los_Angeles",
 ];
 
-const STEPS = ["Lab profile", "Owner account", "Review & create account"];
+const STEPS = ["Business profile", "Owner account", "Review & create account"];
 
-function FlaskLogo() {
+function WrenchLogo() {
   return (
     <div className="grid size-11 flex-none place-items-center rounded-[14px] bg-[#e8785030]">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-terracotta)" strokeWidth="2.2" strokeLinecap="round">
-        <path d="M9 3v7l-4.5 8a2 2 0 0 0 1.8 3h11.4a2 2 0 0 0 1.8-3L15 10V3" />
-        <path d="M7.5 3h9" />
-        <path d="M8 14h8" />
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-terracotta)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
       </svg>
     </div>
   );
@@ -83,10 +81,10 @@ function SignupWizard() {
     <div className="min-h-screen bg-cream-page py-10 font-onboarding">
       <div className="mx-auto w-full max-w-[600px] px-5">
         <div className="mb-5 flex items-center gap-3">
-          <FlaskLogo />
+          <WrenchLogo />
           <div>
-            <div className="text-[17px] font-semibold tracking-tight text-ink">MedLab AI</div>
-            <div className="text-[10px] font-semibold tracking-[0.08em] text-cream-faint uppercase">NEW LAB SETUP</div>
+            <div className="text-[17px] font-semibold tracking-tight text-ink">Jobproof</div>
+            <div className="text-[10px] font-semibold tracking-[0.08em] text-cream-faint uppercase">NEW BUSINESS SETUP</div>
           </div>
           <Link href="/login" className="ml-auto text-[13px] font-semibold text-terracotta hover:text-terracotta-dark">
             Already set up? Sign in
@@ -127,13 +125,13 @@ function SignupWizard() {
 
           {step === 0 && (
             <form onSubmit={next} className="flex flex-col gap-3.5">
-              <h1 className="font-display text-[22px] font-medium text-ink">Tell us about your lab</h1>
+              <h1 className="font-display text-[22px] font-medium text-ink">Tell us about your business</h1>
               <p className="-mt-2 text-[13.5px] text-cream-muted">
-                A few details so we can set up your draw station just right.
+                A few details so we can get your dispatch line set up just right.
               </p>
               <label className={labelCls}>
-                Lab / draw-station name
-                <input required minLength={2} value={labName} onChange={(e) => setLabName(e.target.value)} placeholder="BrightPath Diagnostics — Midtown" className={inputCls} />
+                Business name
+                <input required minLength={2} value={labName} onChange={(e) => setLabName(e.target.value)} placeholder="Ironclad Home Services — Denver" className={inputCls} />
               </label>
               <label className={labelCls}>
                 Timezone
@@ -161,7 +159,7 @@ function SignupWizard() {
                   </select>
                 </label>
                 <label className={labelCls}>
-                  Draw chairs
+                  Jobs per slot
                   <select value={slotCapacity} onChange={(e) => setSlotCapacity(Number(e.target.value))} className={inputCls}>
                     {[1, 2, 3, 4, 5, 6, 8].map((n) => (
                       <option key={n} value={n}>{n}</option>
@@ -179,7 +177,7 @@ function SignupWizard() {
             <form onSubmit={next} className="flex flex-col gap-3.5">
               <h1 className="font-display text-[22px] font-medium text-ink">Owner account</h1>
               <p className="-mt-2 text-[13.5px] text-cream-muted">You&apos;ll use this to sign in to the console. Staff accounts come later.</p>
-              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@yourlab.com" className={inputCls} />
+              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@yourbusiness.com" className={inputCls} />
               <input type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password (min 8 characters)" className={inputCls} />
               <input type="password" required value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="Confirm password" className={inputCls} />
               <div className="mt-1 flex gap-3">
@@ -197,9 +195,9 @@ function SignupWizard() {
             <div className="flex flex-col gap-4">
               <h1 className="font-display text-[22px] font-medium text-ink">Review &amp; create account</h1>
               <div className="rounded-2xl border border-cream-border bg-cream-input p-5.5 text-sm">
-                <div className="flex justify-between py-2"><span className="text-cream-muted">Lab</span><span className="font-semibold text-ink">{labName}</span></div>
+                <div className="flex justify-between py-2"><span className="text-cream-muted">Business</span><span className="font-semibold text-ink">{labName}</span></div>
                 <div className="flex justify-between py-2"><span className="text-cream-muted">Hours</span><span className="font-semibold text-ink">{openHour}:00 – {closeHour}:00 · {timezone.split("/")[1]?.replace("_", " ")}</span></div>
-                <div className="flex justify-between py-2"><span className="text-cream-muted">Draw chairs</span><span className="font-semibold text-ink">{slotCapacity}</span></div>
+                <div className="flex justify-between py-2"><span className="text-cream-muted">Jobs per slot</span><span className="font-semibold text-ink">{slotCapacity}</span></div>
                 <div className="flex justify-between py-2"><span className="text-cream-muted">Owner</span><span className="font-semibold text-ink">{email}</span></div>
                 <div className="mt-1 flex justify-between border-t border-cream-border pt-3">
                   <span className="text-cream-muted">Plan</span>
@@ -213,7 +211,7 @@ function SignupWizard() {
                 ← Back
               </button>
               <p className="text-center text-[10.5px] font-medium tracking-[0.04em] text-cream-faint uppercase">
-                NO CHARGE TODAY · SECURE YOUR CARD NEXT · NO PATIENT DATA REQUIRED TO START
+                NO CHARGE TODAY · SECURE YOUR CARD NEXT · NO CUSTOMER DATA REQUIRED TO START
               </p>
             </div>
           )}

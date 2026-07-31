@@ -1,5 +1,5 @@
 // Resolves a signed-in caller's tenant from their Supabase access token.
-// Service-role, bypasses RLS — mirrors medlab-engine's dashboardAuth.js
+// Service-role, bypasses RLS — mirrors the engine's dashboardAuth.js
 // token→tenant resolution, for Next.js route handlers. Onboarding routes
 // use this instead of trusting a client-supplied tenant id.
 

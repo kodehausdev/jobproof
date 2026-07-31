@@ -53,13 +53,13 @@ export default function BillingPage() {
 
       {!user || !tenant ? (
         <div className="rounded-xl border border-dashed border-slate-300 bg-white/60 px-4.5 py-10 text-center text-sm text-slate-400 dark:border-slate-700 dark:bg-slate-900/60">
-          Sign in to a provisioned lab account to manage billing.
+          Sign in to a provisioned account to manage billing.
         </div>
       ) : (
         <div className="max-w-[560px] rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:shadow-none">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm font-bold text-slate-900 dark:text-slate-100">MedLab AI Receptionist — Pro</div>
+              <div className="text-sm font-bold text-slate-900 dark:text-slate-100">Jobproof — Pro</div>
               <div className="mt-0.5 font-mono text-xs text-slate-500 dark:text-slate-400">$297/mo per location</div>
             </div>
             <span

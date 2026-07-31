@@ -1,7 +1,7 @@
 "use client";
 
-// The highest-stakes event in the system (a possible medical emergency,
-// scripted 911/ER redirect already delivered) previously had no signal
+// The highest-stakes event in the system (a possible emergency,
+// scripted 911 redirect already delivered) previously had no signal
 // beyond someone happening to be looking at the live feed. This adds:
 //   - a bell with an unacknowledged-count badge, always in the header
 //   - a toast the moment a NEW emergency.detected event arrives this session
@@ -76,10 +76,10 @@ export function EmergencyAlerts() {
       if (toastTimer.current) clearTimeout(toastTimer.current);
       toastTimer.current = setTimeout(() => setToast(null), 12000);
       if ("Notification" in window && Notification.permission === "granted") {
-        new Notification("Possible medical emergency", {
+        new Notification("Possible emergency", {
           body:
             ev.data.summary ??
-            "A caller's language suggested a possible emergency — scripted 911/ER redirect delivered.",
+            "A caller's language suggested a possible emergency — scripted 911 redirect delivered.",
           tag: ev.id,
         });
       }
@@ -123,10 +123,10 @@ export function EmergencyAlerts() {
             </span>
             <div className="min-w-0 flex-1">
               <div className="text-[13px] font-bold text-red-900 dark:text-red-100">
-                Possible medical emergency
+                Possible emergency
               </div>
               <div className="mt-0.5 text-xs leading-relaxed text-red-800 dark:text-red-200">
-                {toast.data.summary ?? "Scripted 911/ER redirect delivered before the model saw the turn."}
+                {toast.data.summary ?? "Scripted 911 redirect delivered before the model saw the turn."}
               </div>
               <button
                 onClick={() => goToLog(toast)}
@@ -196,7 +196,7 @@ export function EmergencyAlerts() {
                       </span>
                     </div>
                     <div className="mt-0.5 line-clamp-2 text-[11.5px] text-slate-700 dark:text-slate-300">
-                      {ev.data.summary ?? "Scripted 911/ER redirect delivered."}
+                      {ev.data.summary ?? "Scripted 911 redirect delivered."}
                     </div>
                   </button>
                 ))}

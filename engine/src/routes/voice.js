@@ -14,15 +14,15 @@ function createVoiceRouter({ engine }) {
   const turnUrl = `${config.publicBaseUrl}/webhook/voice/turn`;
 
   router.post('/webhook/voice', async (req, res) => {
-    // The called number identifies the lab (multi-tenant routing).
+    // The called number identifies the tenant (multi-tenant routing).
     const tenant = await engine.resolveTenant(req.body?.To);
     // Proactive AI disclosure in the greeting (CA B.O.T. law / Utah AI
     // Policy Act posture): the caller hears they've reached an AI before
     // any data is collected.
     const greeting =
       `Thanks for calling ${tenant.labName}. ` +
-      `I'm an automated A I assistant, and I can book lab appointments — ` +
-      `what test do you need, and when?`;
+      `I'm an automated A I assistant, and I can help book a service appointment — ` +
+      `what do you need done, and when?`;
     res.type('text/xml').send(gatherTwiml(greeting, turnUrl));
   });
 

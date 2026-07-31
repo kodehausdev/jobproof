@@ -212,7 +212,7 @@ Environment variables to set on the service:
 | `TWILIO_WHATSAPP_NUMBER` | e.g. `whatsapp:+14155238886` (sandbox) |
 | `TWILIO_VALIDATE_WEBHOOKS` | `true` — rejects requests without a valid `X-Twilio-Signature` |
 | `PUBLIC_BASE_URL` | the Railway domain, e.g. `https://<svc>.up.railway.app` |
-| `TENANT_ID` / `LAB_NAME` / `LAB_*` / `SLOT_CAPACITY` | default-tenant fallback |
+| `TENANT_ID` / `BUSINESS_NAME` / `BUSINESS_*` / `SLOT_CAPACITY` | default-tenant fallback |
 
 Then point the Twilio number's webhooks at
 `{PUBLIC_BASE_URL}/webhook/voice` and `{PUBLIC_BASE_URL}/webhook/whatsapp`.

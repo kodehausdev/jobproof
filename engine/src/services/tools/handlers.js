@@ -90,7 +90,7 @@ function createToolHandlers({ store, tenant: defaultTenant, events }) {
       const canonicalTest = normalizeTestType(test_type);
       if (!canonicalTest) {
         return {
-          error: `Unknown test "${test_type}". Offer the caller one of: ${TEST_CATALOG.map(t => t.name).join(', ')}.`,
+          error: `Unknown service "${test_type}". Offer the caller one of: ${TEST_CATALOG.map(t => t.name).join(', ')}.`,
         };
       }
 
@@ -203,7 +203,7 @@ function createToolHandlers({ store, tenant: defaultTenant, events }) {
 
   return {
     /**
-     * Guarded dispatch: strips non-whitelisted args, rejects health-history
+     * Guarded dispatch: strips non-whitelisted args, rejects restricted
      * content, executes, and always returns a JSON-serializable result the
      * model can consume as a functionResponse.
      */
@@ -231,13 +231,13 @@ function createToolHandlers({ store, tenant: defaultTenant, events }) {
             code: err.code,
             status: 'guardrail_redacted',
             summary:
-              'Caller volunteered restricted health information mid-call. ' +
+              'Caller volunteered restricted payment or identity information mid-call. ' +
               'Intercepted by the compliance layer — nothing was stored or executed.',
           });
           return {
             error:
-              'Rejected: this system only collects name, phone number, test type and appointment time. ' +
-              'Do not collect or restate medical history. Tell the caller their health details are not needed for booking.',
+              'Rejected: this system only collects name, phone number, service type and appointment time. ' +
+              'Do not collect or restate payment card numbers, CVVs, bank details, or SSNs. Tell the caller those details are not needed for booking.',
           };
         }
         safeLog(`❌ Tool ${name} failed: ${err.message}`);

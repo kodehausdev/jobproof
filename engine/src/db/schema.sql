@@ -1,6 +1,6 @@
--- MedLab AI Receptionist — Supabase schema
--- Deliberately minimal: the appointments table holds the ONLY patient data
--- this system stores. No transcripts, no free-text notes, no history fields.
+-- Jobproof — Supabase schema
+-- Deliberately minimal: the appointments table holds the ONLY customer data
+-- this system stores. No transcripts, no free-text notes, no payment fields.
 
 create table if not exists tenants (
   id text primary key,                    -- e.g. 'default' or a slug
@@ -26,7 +26,7 @@ create table if not exists tenants (
 -- Single-tenant MVP seed — matches the .env defaults. Multi-tenant onboarding
 -- replaces this with real rows keyed by inbound Twilio number.
 insert into tenants (id, lab_name)
-  values ('default', 'BrightPath Diagnostics')
+  values ('default', 'Ironclad Home Services')
   on conflict (id) do nothing;
 
 create table if not exists appointments (

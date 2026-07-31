@@ -13,11 +13,11 @@ const CONTROLS = [
   },
   {
     name: "guardToolArgs()",
-    desc: "Every model tool call intercepted; unknown fields stripped, health content rejected.",
+    desc: "Every model tool call intercepted; unknown fields stripped, payment/identity content rejected.",
   },
   {
     name: "safeLog()",
-    desc: "All runtime logs pass PHI redaction — SSNs, DOBs, member IDs, phone tails.",
+    desc: "All runtime logs pass redaction — SSNs, card numbers, phone tails.",
   },
   {
     name: "Session TTL sweep",
@@ -25,11 +25,11 @@ const CONTROLS = [
   },
 ];
 
-const BAAS = [
-  { name: "Twilio (voice + WhatsApp)", state: "PENDING", ok: false },
-  { name: "Hosting provider", state: "PENDING", ok: false },
-  { name: "Model API (Vertex AI route)", state: "WIRED", ok: true },
-  { name: "Tenant BAA (per lab)", state: "TEMPLATE", ok: false },
+const DATA_HANDLING = [
+  { name: "Call recordings", state: "Never stored" },
+  { name: "Card / bank details", state: "Never collected" },
+  { name: "SSNs", state: "Never collected" },
+  { name: "Data in transit", state: "TLS encrypted" },
 ];
 
 export default function CompliancePage() {
@@ -52,7 +52,7 @@ export default function CompliancePage() {
 
   const kpis = [
     {
-      label: "GUARDRAIL EVENTS",
+      label: "PRIVACY INTERCEPTS",
       value: String(guardrails.length),
       sub: "all intercepted pre-storage",
       cls: "text-red-700 dark:text-red-400",
@@ -60,11 +60,11 @@ export default function CompliancePage() {
     {
       label: "EMERGENCY REDIRECTS",
       value: String(emergencies.length),
-      sub: "scripted 911/ER, before the model",
+      sub: "scripted 911 redirect, before the model",
       cls: "text-red-700 dark:text-red-400",
     },
     {
-      label: "FREE-TEXT PHI STORED",
+      label: "SENSITIVE DATA STORED",
       value: "0",
       sub: "whitelist-only writes",
       cls: "text-green-700 dark:text-green-400",
@@ -72,7 +72,7 @@ export default function CompliancePage() {
     {
       label: "FIELDS PER BOOKING",
       value: "4",
-      sub: "name · phone · test · time",
+      sub: "name · phone · service · time",
       cls: "text-slate-900 dark:text-slate-100",
     },
     {
@@ -86,9 +86,9 @@ export default function CompliancePage() {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-[19px] font-bold tracking-tight">Compliance</h1>
+        <h1 className="text-[19px] font-bold tracking-tight">Privacy &amp; Data Retention</h1>
         <p className="mt-0.5 text-[12.5px] text-slate-500 dark:text-slate-400">
-          Guardrail audit trail · control posture · BAA status
+          Privacy audit trail · data retention · security posture
           {source === "engine" ? " · (live feed — connect Supabase for durable history)" : ""}
         </p>
       </div>
@@ -124,7 +124,7 @@ export default function CompliancePage() {
             >
               <path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5l8-3z" />
             </svg>
-            <h2 className="text-[13.5px] font-bold">Guardrail audit trail</h2>
+            <h2 className="text-[13.5px] font-bold">Privacy audit trail</h2>
             <div className="ml-auto flex items-center gap-3">
               <span className="font-mono text-[10px] text-slate-400 dark:text-slate-500">
                 EVENT METADATA ONLY — NO CALLER CONTENT
@@ -141,7 +141,7 @@ export default function CompliancePage() {
 
           {guardrails.length === 0 ? (
             <div className="px-4.5 py-10 text-center text-sm text-slate-400">
-              No guardrail intercepts recorded. Prompt-level deflections are not
+              No privacy intercepts recorded. Prompt-level deflections are not
               yet surfaced here.
             </div>
           ) : (
@@ -151,7 +151,7 @@ export default function CompliancePage() {
                 className="flex items-start gap-3 border-b border-slate-100 px-4.5 py-3 dark:border-slate-800"
               >
                 <span className="mt-0.5 rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-[10.5px] font-semibold whitespace-nowrap text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
-                  PHI redacted
+                  Content redacted
                 </span>
                 <div className="min-w-0">
                   <div className="font-mono text-[11.5px] text-indigo-800 dark:text-indigo-300">
@@ -170,7 +170,7 @@ export default function CompliancePage() {
             ))
           )}
           <div className="bg-slate-50 px-4.5 py-2.5 font-mono text-[11px] text-slate-500 dark:bg-slate-800/50 dark:text-slate-400">
-            RETENTION: 6 YEARS · EXPORTS ARE PHI-FREE BY CONSTRUCTION
+            RETENTION: 6 YEARS · EXPORTS CONTAIN NO SENSITIVE CONTENT BY CONSTRUCTION
           </div>
         </section>
 
@@ -198,38 +198,26 @@ export default function CompliancePage() {
           </section>
 
           <section className="rounded-xl border border-slate-200 bg-white px-4.5 py-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:shadow-none">
-            <h2 className="mb-2 text-[13.5px] font-bold">BAA status</h2>
-            {BAAS.map((b) => (
+            <h2 className="mb-2 text-[13.5px] font-bold">Data handling</h2>
+            {DATA_HANDLING.map((d) => (
               <div
-                key={b.name}
+                key={d.name}
                 className="flex items-center gap-2.5 border-t border-slate-100 py-2 dark:border-slate-800"
               >
-                <span
-                  className={
-                    b.ok
-                      ? "grid size-4 flex-none place-items-center rounded-full bg-green-100 text-[9px] font-bold text-green-700 dark:bg-green-500/15 dark:text-green-300"
-                      : "grid size-4 flex-none place-items-center rounded-full bg-amber-100 text-[9px] font-bold text-amber-700 dark:bg-amber-500/15 dark:text-amber-300"
-                  }
-                >
-                  {b.ok ? "✓" : "!"}
+                <span className="grid size-4 flex-none place-items-center rounded-full bg-green-100 text-[9px] font-bold text-green-700 dark:bg-green-500/15 dark:text-green-300">
+                  ✓
                 </span>
                 <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                  {b.name}
+                  {d.name}
                 </span>
-                <span
-                  className={
-                    b.ok
-                      ? "ml-auto font-mono text-[10px] font-semibold text-green-700 dark:text-green-400"
-                      : "ml-auto font-mono text-[10px] font-semibold text-amber-700 dark:text-amber-400"
-                  }
-                >
-                  {b.state}
+                <span className="ml-auto font-mono text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+                  {d.state}
                 </span>
               </div>
             ))}
             <p className="mt-2.5 text-[10.5px] leading-snug text-slate-400 dark:text-slate-500">
-              Technical controls ≠ compliance. Signed BAAs across the stack land
-              with the US entity registration.
+              This system never takes payment over the phone or by text — card
+              and bank details are rejected before they're ever stored.
             </p>
           </section>
         </div>

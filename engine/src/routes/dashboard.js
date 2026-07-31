@@ -1,15 +1,15 @@
-// Dashboard feed — read-only API consumed by the front-desk console
-// (MedLab Dashboard.dc.html).
+// Dashboard feed — read-only API consumed by the Jobproof web console
+// (web/src/components/console).
 //   GET /api/dashboard/state   → { tenant, counters, recent } snapshot
 //   GET /api/dashboard/events  → Server-Sent Events: buffer replay, then live
 //
 // SSE over WebSockets on purpose: the flow is strictly server → dashboard,
 // EventSource reconnects for free, and it rides the existing Express server.
 //
-// ⚠ Unauthenticated and CORS-open for local development (the .dc.html opens
-// from file://, so Origin is "null"). Events carry minimum-necessary data
-// (patient name + phone tail only), but before exposing this beyond
-// localhost put it behind auth and pin the allowed origin.
+// ⚠ Unauthenticated and CORS-open for local development. Events carry
+// minimum-necessary data (patient name + phone tail only), but before
+// exposing this beyond localhost put it behind auth and pin the allowed
+// origin.
 
 const express = require('express');
 const { createDashboardAuth } = require('../services/dashboardAuth');
