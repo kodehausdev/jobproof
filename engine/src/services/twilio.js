@@ -92,6 +92,18 @@ async function sendSms(to, body, from) {
   await postTwilioMessage('SMS', to, { From: fromNumber, To: to, Body: body });
 }
 
+/**
+ * Texts the owner/dispatcher the moment a booking confirms — nobody running
+ * a one-truck outfit is watching a dashboard between calls. No-ops silently
+ * when the tenant hasn't set notify_phone (see services/tools/handlers.js,
+ * the only caller). `from` is the tenant's own Twilio number when known;
+ * sendSms falls back to TWILIO_SMS_NUMBER otherwise.
+ */
+async function notifyOwner(tenant, message) {
+  if (!tenant?.notifyPhone) return;
+  await sendSms(tenant.notifyPhone, message, tenant.twilioNumber || undefined);
+}
+
 function escapeXml(s) {
   return String(s)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -132,4 +144,4 @@ function streamTwiml(wsUrl) {
 </Response>`;
 }
 
-module.exports = { sendWhatsApp, sendSms, gatherTwiml, sayHangupTwiml, streamTwiml };
+module.exports = { sendWhatsApp, sendSms, notifyOwner, gatherTwiml, sayHangupTwiml, streamTwiml };

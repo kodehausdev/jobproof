@@ -97,6 +97,7 @@ function mapTenantRow(row) {
     slotCapacity: row.slot_capacity,
     twilioNumber: row.twilio_number || null,
     whatsappNumber: row.whatsapp_number || null,
+    notifyPhone: row.notify_phone || null,
   };
 }
 

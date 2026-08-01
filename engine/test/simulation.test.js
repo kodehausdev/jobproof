@@ -20,6 +20,7 @@ const { sanitizeAppointment, guardToolArgs, ComplianceError } =
 const { redactText, containsRestrictedContent } = require('../src/compliance/redact');
 const { createSessionStore, compressHistory } = require('../src/services/session');
 const { muLawEncodeSample, muLawDecodeSample } = require('../src/services/geminiLive');
+const { notifyOwner } = require('../src/services/twilio');
 const { TOOL_ARG_WHITELIST } = require('../src/services/tools/schemas');
 
 const TENANT = {
@@ -349,6 +350,38 @@ test('tools: fuzzy test-type matching and validation errors', async () => {
     test_type: 'MRI', date: THURSDAY, time_slot: '10:00',
   }, {});
   assert.match(badTest.error, /Unknown service/);
+});
+
+test('notify: owner is texted when a booking confirms and notify_phone is set', async () => {
+  const notified = [];
+  const tenantWithNotify = { ...TENANT, notifyPhone: '+15559998888' };
+  const exec = createToolHandlers({
+    store: createMemoryStore(),
+    tenant: tenantWithNotify,
+    notify: async (tenant, message) => { notified.push({ tenant, message }); },
+  });
+
+  const result = await exec.execute('book_appointment', {
+    patient_name: 'Alex', phone_number: CALLER,
+    test_type: 'Repair', date: THURSDAY, time_slot: '10:00',
+  }, {});
+  assert.equal(result.confirmed, true);
+
+  // Notification is fire-and-forget from the handler's perspective — give
+  // its microtask a tick to land before asserting.
+  await new Promise((r) => setImmediate(r));
+  assert.equal(notified.length, 1);
+  assert.equal(notified[0].tenant.notifyPhone, '+15559998888');
+  assert.match(notified[0].message, /Alex/);
+  assert.match(notified[0].message, /Repair/);
+  assert.match(notified[0].message, /2026-07-09/);
+  assert.match(notified[0].message, /10:00/);
+});
+
+test('notify: notifyOwner no-ops (never reaches Twilio) when notify_phone is unset', async () => {
+  // No notify_phone on the tenant — must resolve without attempting a send.
+  await assert.doesNotReject(() => notifyOwner({ notifyPhone: null }, 'should not send'));
+  await assert.doesNotReject(() => notifyOwner(null, 'should not send'));
 });
 
 // ══════════════════════════════════════════════════════════════

@@ -22,7 +22,7 @@ import type { EngineState } from "@/lib/engine";
 export type AuthTenant = EngineState["tenant"];
 
 const TENANT_COLUMNS =
-  "id, lab_name, open_hour, close_hour, slot_capacity, onboarding_state, whatsapp_number, subscription_status, timezone";
+  "id, lab_name, open_hour, close_hour, slot_capacity, onboarding_state, whatsapp_number, notify_phone, subscription_status, timezone";
 
 interface AuthContextValue {
   user: User | null;

@@ -39,6 +39,9 @@ const config = {
     openHour: Number(process.env.BUSINESS_OPEN_HOUR || 8),
     closeHour: Number(process.env.BUSINESS_CLOSE_HOUR || 17),
     slotCapacity: Number(process.env.SLOT_CAPACITY || 2),
+    // Owner/dispatcher phone texted on each new booking (see
+    // services/twilio.js notifyOwner()). Blank disables it.
+    notifyPhone: process.env.NOTIFY_PHONE || '',
   },
 };
 

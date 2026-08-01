@@ -21,13 +21,13 @@ export default function SettingsPage() {
       <div>
         <h1 className="text-[19px] font-bold tracking-tight">Settings</h1>
         <p className="mt-0.5 text-[12.5px] text-slate-500 dark:text-slate-400">
-          Lab identity and the hours/capacity the AI receptionist schedules against.
+          Business identity and the hours/capacity the AI receptionist schedules against.
         </p>
       </div>
 
       {!user || !tenant ? (
         <div className="rounded-xl border border-dashed border-slate-300 bg-white/60 px-4.5 py-10 text-center text-sm text-slate-400 dark:border-slate-700 dark:bg-slate-900/60">
-          Sign in to a provisioned lab account to edit settings.
+          Sign in to a provisioned account to edit settings.
         </div>
       ) : (
         // Keyed by tenant.id so the form's local state initializes fresh
@@ -46,11 +46,13 @@ function SettingsForm({
   onSaved: () => Promise<void>;
 }) {
   const initialTimezone = tenant.timezone ?? US_TIMEZONES[0].value;
+  const initialNotifyPhone = tenant.notify_phone ?? "";
   const [labName, setLabName] = useState(tenant.lab_name);
   const [timezone, setTimezone] = useState(initialTimezone);
   const [openHour, setOpenHour] = useState(tenant.open_hour);
   const [closeHour, setCloseHour] = useState(tenant.close_hour);
   const [slotCapacity, setSlotCapacity] = useState(tenant.slot_capacity);
+  const [notifyPhone, setNotifyPhone] = useState(initialNotifyPhone);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -60,7 +62,8 @@ function SettingsForm({
     timezone !== initialTimezone ||
     openHour !== tenant.open_hour ||
     closeHour !== tenant.close_hour ||
-    slotCapacity !== tenant.slot_capacity;
+    slotCapacity !== tenant.slot_capacity ||
+    notifyPhone !== initialNotifyPhone;
 
   async function onSave() {
     setBusy(true);
@@ -76,6 +79,7 @@ function SettingsForm({
           open_hour: openHour,
           close_hour: closeHour,
           slot_capacity: slotCapacity,
+          notify_phone: notifyPhone,
         }),
       });
       const data = await res.json();
@@ -93,7 +97,7 @@ function SettingsForm({
     <>
       <div className="max-w-[560px] rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:shadow-none">
         <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
-          Lab name
+          Business name
           <input
             value={labName}
             onChange={(e) => setLabName(e.target.value)}
@@ -163,6 +167,21 @@ function SettingsForm({
           </span>
         </label>
 
+        <label className="mt-4 block text-xs font-semibold text-slate-600 dark:text-slate-400">
+          Text me new bookings
+          <input
+            type="tel"
+            placeholder="+1 555 123 4567"
+            value={notifyPhone}
+            onChange={(e) => setNotifyPhone(e.target.value)}
+            className="mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-900 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:ring-indigo-500/20"
+          />
+          <span className="mt-1 block text-[11px] font-normal text-slate-400 dark:text-slate-500">
+            The AI texts this number the moment it books a job, so nobody has
+            to watch the dashboard between calls. Leave blank to turn this off.
+          </span>
+        </label>
+
         {error ? (
           <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
             {error}
@@ -184,9 +203,8 @@ function SettingsForm({
       </div>
 
       <div className="mt-4 max-w-[560px] rounded-xl border border-slate-200 bg-slate-50 px-4.5 py-3.5 text-[11.5px] leading-relaxed text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
-        Test-type catalog and notification preferences aren&apos;t configurable
-        here yet — they&apos;re still hardcoded engine-side, not per-lab
-        settings in the database.
+        The service catalog isn&apos;t configurable here yet — it&apos;s still
+        hardcoded engine-side, not a per-business setting in the database.
       </div>
     </>
   );

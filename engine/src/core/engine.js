@@ -21,14 +21,16 @@ const TENANT_CACHE_TTL_MS = 60 * 1000;
 
 /**
  * createEngine(overrides) — every dependency is injectable for tests:
- *   { store, tenant, generateFn, now, events }
+ *   { store, tenant, generateFn, now, events, notify }
  */
 function createEngine(overrides = {}) {
   const defaultTenant = overrides.tenant || config.tenant;
   const store = overrides.store || createStore();
   const events = overrides.events || createEventBus({ tenant: defaultTenant });
   const sessions = createSessionStore();
-  const toolExecutor = createToolHandlers({ store, tenant: defaultTenant, events });
+  const toolExecutor = createToolHandlers({
+    store, tenant: defaultTenant, events, notify: overrides.notify,
+  });
   const gemini = createGeminiEngine({
     tenant: defaultTenant,
     toolExecutor,

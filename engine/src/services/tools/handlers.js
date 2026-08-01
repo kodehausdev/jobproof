@@ -5,6 +5,7 @@
 const {
   guardToolArgs, sanitizeAppointment, ComplianceError, safeLog,
 } = require('../../compliance/hipaa');
+const { notifyOwner } = require('../twilio');
 const { TOOL_ARG_WHITELIST, TEST_CATALOG } = require('./schemas');
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -32,15 +33,19 @@ function buildDaySlots(tenant) {
 }
 
 /**
- * createToolHandlers({ store, tenant, events }) → { execute(name, args, ctx) }
+ * createToolHandlers({ store, tenant, events, notify }) → { execute(name, args, ctx) }
  * ctx carries per-conversation facts the model shouldn't have to restate:
  * the caller's phone from Twilio caller ID, and — multi-tenant — the tenant
  * this conversation belongs to (ctx.tenant; the constructor tenant is the
  * single-tenant fallback).
  * events (optional) is the dashboard bus from services/events.
+ * notify (optional) is (tenant, message) => Promise — texts the owner on a
+ * confirmed booking; defaults to compliance/twilio's notifyOwner, override
+ * in tests to assert on it without hitting the network.
  */
-function createToolHandlers({ store, tenant: defaultTenant, events }) {
+function createToolHandlers({ store, tenant: defaultTenant, events, notify }) {
   const bus = events || { emit: () => {} };
+  const notifyFn = notify || notifyOwner;
   const handlers = {
     async list_available_tests() {
       return {
@@ -128,6 +133,13 @@ function createToolHandlers({ store, tenant: defaultTenant, events }) {
         status: 'confirmed',
         summary: `${canonicalTest} booked for ${date} at ${time_slot}; confirmed over ${ctx.channel || 'phone'}.`,
       });
+
+      // Fire-and-forget: a slow or failed owner text must never delay or
+      // break the caller's own booking confirmation.
+      notifyFn(
+        tenant,
+        `New booking: ${record.patient_name} — ${canonicalTest} on ${date} at ${time_slot} (via ${ctx.channel || 'phone'}).`
+      ).catch(err => safeLog(`⚠️ owner notify failed: ${err.message}`));
 
       return {
         confirmed: true,

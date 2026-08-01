@@ -51,6 +51,7 @@ export interface EngineState {
     // own /api/dashboard/state doesn't return these.
     onboarding_state?: string;
     whatsapp_number?: string | null;
+    notify_phone?: string | null;
     subscription_status?: string;
     timezone?: string;
   };

@@ -7,6 +7,7 @@ create table if not exists tenants (
   lab_name text not null,
   twilio_number text,                     -- inbound voice number → tenant routing
   whatsapp_number text,                   -- inbound WA sender → tenant routing
+  notify_phone text,                      -- owner/dispatcher SMS'd on each new booking
   timezone text default 'America/New_York',
   open_hour int default 8,
   close_hour int default 17,
