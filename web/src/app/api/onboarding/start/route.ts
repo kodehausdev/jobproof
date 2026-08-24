@@ -1,12 +1,3 @@
-// POST /api/onboarding/start
-// Wizard steps 1–2 land here: provisions tenant (onboarding_state
-// 'payment_pending') + owner account, and a Stripe customer to attach a
-// card to later. No charge and no subscription yet — the tenant secures a
-// card ($0 SetupIntent, /api/onboarding/setup-intent + confirm-card) after
-// signing in, then self-serves a WhatsApp number, then ops activates the
-// real $297/mo subscription once provisioning is done
-// (scripts/activate-tenant.mjs).
-
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/server/supabase-admin";
 import { stripeClient } from "@/lib/server/stripe";
@@ -87,7 +78,6 @@ export async function POST(req: Request) {
     await admin.from("tenants").delete().eq("id", tenantId);
   };
 
-  // 2. Owner account (confirmed — no verification email in sandbox).
   const { data: created, error: userError } = await admin.auth.admin.createUser({
     email,
     password,
@@ -120,8 +110,7 @@ export async function POST(req: Request) {
     );
   }
 
-  // 3. Stripe customer — the card itself is collected later via
-  // /api/onboarding/setup-intent once the owner is signed in.
+
   try {
     const customer = await stripe.customers.create({
       email,

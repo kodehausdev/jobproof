@@ -31,3 +31,6 @@ web/coverage
 *.tsbuildinfo
 web/next-env.d.ts
 CLAUDE.md
+.gitignore
+ngrok.exe
+ngrok.exe.old

@@ -6,7 +6,7 @@ const config = {
 
   gemini: {
     apiKey: process.env.GEMINI_API_KEY || '',
-    model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+    model: process.env.GEMINI_MODEL || 'gemini-3.6-flash',
     liveModel: process.env.GEMINI_LIVE_MODEL || 'gemini-2.0-flash-live-001',
     // Vertex AI path (production / BAA route). Auth is Application Default
     // Credentials — `gcloud auth application-default login` locally, or an

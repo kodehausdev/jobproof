@@ -1,13 +1,3 @@
-// Channel-agnostic conversation core. This is the descendant of TCD's
-// handleMessage(): both the WhatsApp webhook and the voice turn loop feed
-// into processTurn(), which owns tenant resolution, sessions, the Gemini
-// engine, and tools.
-//
-// Multi-tenant routing: the inbound Twilio `To` number identifies the lab
-// (tenants.twilio_number / whatsapp_number). Unmatched or absent numbers
-// fall back to the env-configured default tenant, which also keeps the
-// single-tenant dev/test setup working unchanged.
-
 const { createSessionStore } = require('../services/session');
 const { createGeminiEngine } = require('../services/gemini');
 const { createToolHandlers } = require('../services/tools/handlers');
