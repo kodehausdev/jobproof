@@ -91,6 +91,13 @@ function createGeminiEngine({ tenant, toolExecutor, generateFn }) {
     return {
       text: calls.length ? '' : (response.text || ''),
       functionCalls: calls.map(c => ({ name: c.name, args: c.args })),
+      // Gemini 3 attaches a thoughtSignature to functionCall parts (and
+      // sometimes to a sibling text part) that MUST be echoed back verbatim
+      // on the next turn, or the API 400s with "missing a thought_signature".
+      // Keep the SDK's raw parts so runTurn can push them unmodified instead
+      // of rebuilding { functionCall: {name, args} } from scratch, which
+      // silently drops the signature.
+      rawParts: response.candidates?.[0]?.content?.parts || null,
     };
   }
 
@@ -111,7 +118,7 @@ function createGeminiEngine({ tenant, toolExecutor, generateFn }) {
     let bookedNow = false;
 
     for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
-      const { text, functionCalls } = await generate(session.history, systemInstruction);
+      const { text, functionCalls, rawParts } = await generate(session.history, systemInstruction);
 
       if (!functionCalls || functionCalls.length === 0) {
         const reply = (text || '').trim() ||
@@ -121,9 +128,13 @@ function createGeminiEngine({ tenant, toolExecutor, generateFn }) {
       }
 
       // Record the model's tool-call turn, execute each call, feed results back.
+      // Push the SDK's raw parts verbatim when available (preserves Gemini 3's
+      // thoughtSignature on each functionCall part); only fall back to a
+      // reconstructed part list for mocked generateFn in tests, which won't
+      // have rawParts and doesn't need signatures.
       session.history.push({
         role: 'model',
-        parts: functionCalls.map(fc => ({ functionCall: { name: fc.name, args: fc.args } })),
+        parts: rawParts || functionCalls.map(fc => ({ functionCall: { name: fc.name, args: fc.args } })),
       });
 
       const responseParts = [];
@@ -134,7 +145,7 @@ function createGeminiEngine({ tenant, toolExecutor, generateFn }) {
         if (fc.name === 'book_appointment' && result.confirmed) {
           bookedNow = true;
           Object.assign(session.facts, {
-            client_name: result.client_name,
+            patient_name: result.patient_name,
             test_type: result.test_type,
             date: result.date,
             time_slot: result.time_slot,
