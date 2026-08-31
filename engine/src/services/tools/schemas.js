@@ -48,7 +48,7 @@ const functionDeclarations = [
     parameters: {
       type: 'OBJECT',
       properties: {
-        patient_name: { type: 'STRING', description: 'Customer full name.' },
+        client_name: { type: 'STRING', description: 'Customer full name.' },
         phone_number: {
           type: 'STRING',
           description:
@@ -61,7 +61,7 @@ const functionDeclarations = [
         date: { type: 'STRING', description: 'YYYY-MM-DD.' },
         time_slot: { type: 'STRING', description: 'HH:MM 24h, on a 30-minute boundary.' },
       },
-      required: ['patient_name', 'test_type', 'date', 'time_slot'],
+      required: ['client_name', 'test_type', 'date', 'time_slot'],
     },
   },
   {
@@ -91,7 +91,7 @@ const functionDeclarations = [
 const TOOL_ARG_WHITELIST = {
   list_available_tests: [],
   check_availability: ['date', 'time_slot'],
-  book_appointment: ['patient_name', 'phone_number', 'test_type', 'date', 'time_slot'],
+  book_appointment: ['client_name', 'phone_number', 'test_type', 'date', 'time_slot'],
   find_my_appointments: [],
   cancel_appointment: ['booking_id'],
 };

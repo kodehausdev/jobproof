@@ -22,7 +22,7 @@ export interface DashboardEvent {
   phone_tail: string | null; // last 4 digits only
   data: {
     booking_id?: number;
-    patient_name?: string;
+    client_name?: string;
     test_type?: string;
     date?: string;
     time_slot?: string;

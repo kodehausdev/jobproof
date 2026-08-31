@@ -84,13 +84,13 @@ function createToolHandlers({ store, tenant: defaultTenant, events, notify }) {
 
     async book_appointment(args, ctx = {}) {
       const tenant = ctx.tenant || defaultTenant;
-      const { patient_name, phone_number, test_type, date, time_slot } = args;
+      const { client_name, phone_number, test_type, date, time_slot } = args;
 
       if (!DATE_RE.test(date || '')) return { error: 'Invalid date. Expected YYYY-MM-DD.' };
       if (!SLOT_RE.test(time_slot || '')) {
         return { error: 'Invalid time_slot. Expected HH:MM on a 30-minute boundary.' };
       }
-      if (!patient_name?.trim()) return { error: 'patient_name is required.' };
+      if (!client_name?.trim()) return { error: 'client_name is required.' };
 
       const canonicalTest = normalizeTestType(test_type);
       if (!canonicalTest) {
@@ -110,7 +110,7 @@ function createToolHandlers({ store, tenant: defaultTenant, events, notify }) {
       // Minimum-necessary gate: whitelist-only write.
       const { record, dropped } = sanitizeAppointment({
         tenant_id: tenant.id,
-        patient_name: patient_name.trim(),
+        client_name: client_name.trim(),
         phone_number: phone,
         test_type: canonicalTest,
         date,
@@ -126,7 +126,7 @@ function createToolHandlers({ store, tenant: defaultTenant, events, notify }) {
 
       bus.emit('booking.confirmed', { channel: ctx.channel, phone, tenantId: tenant.id }, {
         booking_id: saved.id,
-        patient_name: record.patient_name,
+        client_name: record.client_name,
         test_type: canonicalTest,
         date,
         time_slot,
@@ -138,13 +138,13 @@ function createToolHandlers({ store, tenant: defaultTenant, events, notify }) {
       // break the caller's own booking confirmation.
       notifyFn(
         tenant,
-        `New booking: ${record.patient_name} — ${canonicalTest} on ${date} at ${time_slot} (via ${ctx.channel || 'phone'}).`
+        `New booking: ${record.client_name} — ${canonicalTest} on ${date} at ${time_slot} (via ${ctx.channel || 'phone'}).`
       ).catch(err => safeLog(`⚠️ owner notify failed: ${err.message}`));
 
       return {
         confirmed: true,
         booking_id: saved.id,
-        patient_name: record.patient_name,
+        client_name: record.client_name,
         test_type: canonicalTest,
         date,
         time_slot,

@@ -25,7 +25,7 @@ function createSessionStore({ ttlMs = SESSION_TTL_MS } = {}) {
       channel,
       from,
       history: [],        // Gemini `contents` format: { role, parts }
-      facts: {},          // structured slots: patient_name, test_type, date, time_slot
+      facts: {},          // structured slots: client_name, test_type, date, time_slot
       completed: false,   // set true once a booking is confirmed
       touchedAt: Date.now(),
     };
@@ -61,7 +61,7 @@ function compressHistory(session) {
   const recent = session.history.slice(-8);
   const f = session.facts;
   const factBits = [
-    f.patient_name && `customer name: ${f.patient_name}`,
+    f.client_name && `customer name: ${f.client_name}`,
     f.test_type && `service: ${f.test_type}`,
     f.date && `date: ${f.date}`,
     f.time_slot && `slot: ${f.time_slot}`,

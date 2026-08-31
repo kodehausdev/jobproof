@@ -66,7 +66,7 @@ function alexBookingScript() {
         {
           name: 'book_appointment',
           args: {
-            patient_name: 'Alex',
+            client_name: 'Alex',
             phone_number: CALLER,
             test_type: 'Repair',
             date: THURSDAY,
@@ -153,7 +153,7 @@ test('voice: full booking flow returns confirmation TwiML and persists a clean r
     // Exactly one appointment, whitelisted fields only, correct values
     assert.equal(store.appointments.length, 1);
     const appt = store.appointments[0];
-    assert.equal(appt.patient_name, 'Alex');
+    assert.equal(appt.client_name, 'Alex');
     assert.equal(appt.phone_number, CALLER);
     assert.equal(appt.test_type, 'Repair');
     assert.equal(appt.date, THURSDAY);
@@ -219,7 +219,7 @@ test('privacy: non-whitelisted tool args are stripped before execution', () => {
   const { clean, stripped } = guardToolArgs(
     'book_appointment',
     {
-      patient_name: 'Alex',
+      client_name: 'Alex',
       phone_number: CALLER,
       test_type: 'Repair',
       date: THURSDAY,
@@ -231,14 +231,14 @@ test('privacy: non-whitelisted tool args are stripped before execution', () => {
   );
   assert.deepEqual(stripped.sort(), ['preferred_technician', 'referral_source']);
   assert.equal(clean.preferred_technician, undefined);
-  assert.equal(clean.patient_name, 'Alex');
+  assert.equal(clean.client_name, 'Alex');
 });
 
 test('privacy: restricted content (card number) inside a whitelisted field is a hard rejection', () => {
   assert.throws(
     () => guardToolArgs(
       'book_appointment',
-      { patient_name: 'Alex — card number 4111 1111 1111 1111' },
+      { client_name: 'Alex — card number 4111 1111 1111 1111' },
       TOOL_ARG_WHITELIST.book_appointment
     ),
     ComplianceError
@@ -252,7 +252,7 @@ test('privacy: engine refuses to store a booking carrying a card number, stores 
       functionCalls: [{
         name: 'book_appointment',
         args: {
-          patient_name: 'Alex — my card number is 4111 1111 1111 1111',
+          client_name: 'Alex — my card number is 4111 1111 1111 1111',
           phone_number: CALLER,
           test_type: 'Repair',
           date: THURSDAY,
@@ -275,7 +275,7 @@ test('privacy: engine refuses to store a booking carrying a card number, stores 
 
 test('privacy: sanitizeAppointment whitelists fields and rejects restricted content in values', () => {
   const { record, dropped } = sanitizeAppointment({
-    tenant_id: 't', patient_name: 'Alex', phone_number: CALLER,
+    tenant_id: 't', client_name: 'Alex', phone_number: CALLER,
     test_type: 'Repair', date: THURSDAY, time_slot: '10:00',
     channel: 'voice', status: 'confirmed', created_at: 'x',
     diagnosis: 'should never persist', raw_transcript: 'should never persist',
@@ -284,7 +284,7 @@ test('privacy: sanitizeAppointment whitelists fields and rejects restricted cont
   assert.equal(Object.keys(record).length, 9);
 
   assert.throws(
-    () => sanitizeAppointment({ patient_name: 'Alex, card 4111111111111111' }),
+    () => sanitizeAppointment({ client_name: 'Alex, card 4111111111111111' }),
     ComplianceError
   );
 });
@@ -319,15 +319,15 @@ test('tools: capacity enforcement — a full slot rejects further bookings', asy
     phone_number: CALLER, test_type: 'Service Call / Diagnostic', date: THURSDAY, time_slot: '09:00',
   };
 
-  const a = await exec.execute('book_appointment', { ...base, patient_name: 'P One' }, {});
-  const b = await exec.execute('book_appointment', { ...base, patient_name: 'P Two' }, {});
+  const a = await exec.execute('book_appointment', { ...base, client_name: 'P One' }, {});
+  const b = await exec.execute('book_appointment', { ...base, client_name: 'P Two' }, {});
   assert.equal(a.confirmed, true);
   assert.equal(b.confirmed, true);
 
   const avail = await exec.execute('check_availability', { date: THURSDAY, time_slot: '09:00' }, {});
   assert.equal(avail.requested_slot_available, false);
 
-  const c = await exec.execute('book_appointment', { ...base, patient_name: 'P Three' }, {});
+  const c = await exec.execute('book_appointment', { ...base, client_name: 'P Three' }, {});
   assert.equal(c.confirmed, undefined);
   assert.match(c.error, /full/);
   assert.equal(store.appointments.length, 2);
@@ -337,7 +337,7 @@ test('tools: fuzzy test-type matching and validation errors', async () => {
   const exec = createToolHandlers({ store: createMemoryStore(), tenant: TENANT });
 
   const ok = await exec.execute('book_appointment', {
-    patient_name: 'Alex', phone_number: CALLER,
+    client_name: 'Alex', phone_number: CALLER,
     test_type: 'diagnostic', date: THURSDAY, time_slot: '10:30',
   }, {});
   assert.equal(ok.test_type, 'Service Call / Diagnostic');
@@ -346,7 +346,7 @@ test('tools: fuzzy test-type matching and validation errors', async () => {
   assert.match(badDate.error, /YYYY-MM-DD/);
 
   const badTest = await exec.execute('book_appointment', {
-    patient_name: 'Alex', phone_number: CALLER,
+    client_name: 'Alex', phone_number: CALLER,
     test_type: 'MRI', date: THURSDAY, time_slot: '10:00',
   }, {});
   assert.match(badTest.error, /Unknown service/);
@@ -362,7 +362,7 @@ test('notify: owner is texted when a booking confirms and notify_phone is set', 
   });
 
   const result = await exec.execute('book_appointment', {
-    patient_name: 'Alex', phone_number: CALLER,
+    client_name: 'Alex', phone_number: CALLER,
     test_type: 'Repair', date: THURSDAY, time_slot: '10:00',
   }, {});
   assert.equal(result.confirmed, true);
@@ -390,7 +390,7 @@ test('notify: notifyOwner no-ops (never reaches Twilio) when notify_phone is uns
 test('session: history past the cap compresses into a facts summary', () => {
   const sessions = createSessionStore();
   const s = sessions.get('voice', CALLER);
-  s.facts = { patient_name: 'Alex', test_type: 'Repair', date: THURSDAY, time_slot: '10:00' };
+  s.facts = { client_name: 'Alex', test_type: 'Repair', date: THURSDAY, time_slot: '10:00' };
 
   for (let i = 0; i < 20; i++) {
     s.history.push({ role: i % 2 ? 'model' : 'user', parts: [{ text: `turn ${i}` }] });
@@ -459,7 +459,7 @@ test('dashboard: booking flow streams call.answered + booking.confirmed over SSE
     assert.equal(hit.tenant_id, 'test-lab');
     assert.equal(hit.channel, 'voice');
     assert.equal(hit.phone_tail, '4567'); // last 4 only — full number never leaves
-    assert.equal(hit.data.patient_name, 'Alex');
+    assert.equal(hit.data.client_name, 'Alex');
     assert.equal(hit.data.test_type, 'Repair');
     assert.equal(hit.data.date, THURSDAY);
     assert.equal(hit.data.time_slot, '10:00');
@@ -483,7 +483,7 @@ test('dashboard: ComplianceError emits a content-free guardrail.redacted event',
       functionCalls: [{
         name: 'book_appointment',
         args: {
-          patient_name: 'Alex — my card number is 4111 1111 1111 1111',
+          client_name: 'Alex — my card number is 4111 1111 1111 1111',
           phone_number: CALLER,
           test_type: 'Repair',
           date: THURSDAY,
@@ -527,7 +527,7 @@ test('dashboard: every event is persisted as a durable audit row', async () => {
   assert.equal(booked.tenant_id, 'test-lab');
   assert.equal(booked.channel, 'whatsapp');
   assert.equal(booked.phone_tail, '4567');
-  assert.equal(booked.data.patient_name, 'Alex');
+  assert.equal(booked.data.client_name, 'Alex');
   assert.equal(booked.event_id, booked.event_id.match(/^evt-\d+$/)?.[0]);
   // Raw phone number must not appear anywhere in the durable row.
   assert.doesNotMatch(JSON.stringify(store.auditEvents), /\+15551234567/);
@@ -636,7 +636,7 @@ test('routing: dashboard state + SSE are tenant-scoped; unknown tenant is 404', 
       e => e.type === 'booking.confirmed'
     );
     assert.ok(events.every(e => e.tenant_id === 'lab2'));
-    assert.equal(hit.data.patient_name, 'Alex');
+    assert.equal(hit.data.client_name, 'Alex');
     controller.abort();
   } finally {
     server.close();
@@ -747,7 +747,7 @@ test('dashboard: engine seeds counters + ring buffer from the audit trail at boo
         channel: 'whatsapp', phone_tail: '3985', data: {}, created_at: '2026-07-07T11:48:35Z' },
       { id: 8, tenant_id: 'test-lab', event_id: 'evt-8', type: 'booking.confirmed',
         channel: 'whatsapp', phone_tail: '3985',
-        data: { patient_name: 'Pete Burg', test_type: 'Installation' },
+        data: { client_name: 'Pete Burg', test_type: 'Installation' },
         created_at: '2026-07-07T11:54:27Z' },
       { id: 3, tenant_id: 'other-lab', event_id: 'evt-3', type: 'call.answered',
         channel: 'voice', phone_tail: '0042', data: {}, created_at: '2026-07-05T14:22:00Z' },
@@ -768,7 +768,7 @@ test('dashboard: engine seeds counters + ring buffer from the audit trail at boo
   assert.equal(scoped.counters.calls_answered, 2, 'counters come from tallies, not the buffer');
   assert.equal(scoped.counters.bookings_confirmed, 1);
   assert.deepEqual(scoped.recent.map(e => e.id), ['evt-7', 'evt-8'], 'chronological, tenant-scoped');
-  assert.equal(scoped.recent[1].data.patient_name, 'Pete Burg');
+  assert.equal(scoped.recent[1].data.client_name, 'Pete Burg');
   assert.equal(engine.events.snapshot('other-lab').counters.calls_answered, 1);
 
   // seq resumes past the highest db id — a live emit must not collide with
@@ -881,7 +881,7 @@ test('tcpa: STOP is honored deterministically — suppresses the AI until START 
       From: waFrom, Body: ALEX_UTTERANCE, MessageSid: 'SM_stop_4',
     });
     await waitFor(() => store.appointments.length >= 1);
-    assert.equal(store.appointments[0].patient_name, 'Alex');
+    assert.equal(store.appointments[0].client_name, 'Alex');
   } finally {
     server.close();
   }
@@ -926,7 +926,7 @@ test('disclosure: voice greeting and first WhatsApp reply identify the AI', asyn
 test('tools: cancel flow — find_my_appointments + cancel_appointment frees the slot', async () => {
   const store = createMemoryStore();
   await store.insertAppointment({
-    tenant_id: 'test-lab', patient_name: 'Alex', phone_number: CALLER,
+    tenant_id: 'test-lab', client_name: 'Alex', phone_number: CALLER,
     test_type: 'Repair', date: THURSDAY, time_slot: '10:00',
     channel: 'voice', status: 'confirmed', created_at: NOW.toISOString(),
   });
@@ -955,7 +955,7 @@ test('tools: cancel flow — find_my_appointments + cancel_appointment frees the
 test('tools: cancel_appointment rejects a booking_id that is not the caller own booking', async () => {
   const store = createMemoryStore();
   await store.insertAppointment({
-    tenant_id: 'test-lab', patient_name: 'Alex', phone_number: CALLER,
+    tenant_id: 'test-lab', client_name: 'Alex', phone_number: CALLER,
     test_type: 'Repair', date: THURSDAY, time_slot: '10:00',
     channel: 'voice', status: 'confirmed', created_at: NOW.toISOString(),
   });

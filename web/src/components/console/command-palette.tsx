@@ -90,7 +90,7 @@ function PaletteModal({ onClose }: { onClose: () => void }) {
         ? []
         : rows
             .filter((r) => {
-              const patient = (r.data.patient_name ?? "").toLowerCase();
+              const patient = (r.data.client_name ?? "").toLowerCase();
               const phone = r.phone_tail ?? "";
               const test = (r.data.test_type ?? "").toLowerCase();
               return patient.includes(q) || phone.includes(q) || test.includes(q);
@@ -99,7 +99,7 @@ function PaletteModal({ onClose }: { onClose: () => void }) {
             .map((r) => ({
               kind: "event",
               key: `${r.id}-${r.event_id}`,
-              label: r.data.patient_name ?? `Caller ••• ${r.phone_tail ?? "????"}`,
+              label: r.data.client_name ?? `Caller ••• ${r.phone_tail ?? "????"}`,
               sub: `${r.type} · ${new Date(r.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`,
               row: r,
             }));

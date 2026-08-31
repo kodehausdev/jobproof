@@ -14,7 +14,7 @@
 //
 // data by type:
 //   call.answered      → {}
-//   booking.confirmed  → { booking_id, patient_name, test_type, date, time_slot,
+//   booking.confirmed  → { booking_id, client_name, test_type, date, time_slot,
 //                          status: "confirmed", summary }
 //   guardrail.redacted → { tool, code, status: "guardrail_redacted", summary }
 //     Deliberately carries NO caller content and NO matched restricted term —

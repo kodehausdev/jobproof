@@ -52,7 +52,7 @@ function describe(row: AuditRow): { customer: string; test: string; summary: str
   const phone = row.phone_tail ? `••• ${row.phone_tail}` : "unknown";
   if (row.type === "booking.confirmed") {
     return {
-      customer: row.data.patient_name ?? "Caller",
+      customer: row.data.client_name ?? "Caller",
       test: row.data.test_type ?? "—",
       summary:
         row.data.summary ??

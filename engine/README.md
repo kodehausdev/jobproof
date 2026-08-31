@@ -184,7 +184,7 @@ scripted demo data (header badge shows `DEMO DATA` vs `ENGINE LIVE`).
 }
 ```
 
-`booking.confirmed` carries `booking_id, patient_name, test_type, date,
+`booking.confirmed` carries `booking_id, client_name, test_type, date,
 time_slot, status, summary`. `guardrail.redacted` (emitted whenever the
 compliance layer throws a `ComplianceError`) carries only `tool, code,
 status, summary` — never the caller's words or the matched health-history

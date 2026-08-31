@@ -168,7 +168,7 @@ export default function SchedulingPage() {
                         {appt ? (
                           <>
                             <div className="truncate text-[11px] font-semibold text-indigo-900 dark:text-indigo-200">
-                              {appt.patient_name}
+                              {appt.client_name}
                             </div>
                             <div className="truncate font-mono text-[9.5px] text-indigo-400 dark:text-indigo-400/80">
                               {appt.test_type}

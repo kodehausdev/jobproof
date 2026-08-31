@@ -71,9 +71,9 @@ if (signInError) {
 
   const { data: appts } = await authed
     .from("appointments")
-    .select("patient_name, test_type, date");
+    .select("client_name, test_type, date");
   if ((appts ?? []).length > 0)
-    ok(`appointments: ${appts.length} row(s), e.g. ${appts[0].patient_name} — ${appts[0].test_type}`);
+    ok(`appointments: ${appts.length} row(s), e.g. ${appts[0].client_name} — ${appts[0].test_type}`);
   else fail("appointments: expected rows for own tenant, got none");
 
   const { data: events } = await authed

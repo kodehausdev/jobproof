@@ -10,7 +10,7 @@ function rowFor(ev: DashboardEvent) {
   const phone = ev.phone_tail ? `••• ${ev.phone_tail}` : "unknown";
   const anonymousAvatar = ev.phone_tail ? ev.phone_tail.slice(-2) : "?";
   if (ev.type === "booking.confirmed") {
-    const name = ev.data.patient_name ?? "Caller";
+    const name = ev.data.client_name ?? "Caller";
     return {
       name,
       phone,
@@ -19,7 +19,7 @@ function rowFor(ev: DashboardEvent) {
         ev.data.summary ??
         `Booked ${ev.data.date} at ${ev.data.time_slot} via ${ev.channel}.`,
       avatar: "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300",
-      avatarLabel: ev.data.patient_name ? initialsOf(name) : anonymousAvatar,
+      avatarLabel: ev.data.client_name ? initialsOf(name) : anonymousAvatar,
     };
   }
   if (ev.type === "booking.cancelled") {

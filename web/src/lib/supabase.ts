@@ -30,7 +30,7 @@ export interface AuditRow {
   phone_tail: string | null;
   data: {
     booking_id?: number;
-    patient_name?: string;
+    client_name?: string;
     test_type?: string;
     date?: string;
     time_slot?: string;

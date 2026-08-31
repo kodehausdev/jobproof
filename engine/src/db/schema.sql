@@ -33,7 +33,7 @@ insert into tenants (id, lab_name)
 create table if not exists appointments (
   id bigint generated always as identity primary key,
   tenant_id text references tenants(id),
-  patient_name text not null,
+  client_name text not null,
   phone_number text not null,
   test_type text not null,
   date date not null,

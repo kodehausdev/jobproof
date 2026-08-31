@@ -12,7 +12,7 @@ import { useDashboard } from "@/components/console/dashboard-provider";
 
 export interface Appointment {
   id: number;
-  patient_name: string;
+  client_name: string;
   phone_number: string;
   test_type: string;
   date: string; // YYYY-MM-DD
@@ -94,7 +94,7 @@ export function useAppointments(date: string): {
       if (ev.type === "booking.confirmed") {
         byId.set(bookingId, {
           id: bookingId,
-          patient_name: ev.data.patient_name ?? "Caller",
+          client_name: ev.data.client_name ?? "Caller",
           phone_number: "",
           test_type: ev.data.test_type ?? "—",
           date: ev.data.date,
