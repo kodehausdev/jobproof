@@ -145,7 +145,7 @@ function createGeminiEngine({ tenant, toolExecutor, generateFn }) {
         if (fc.name === 'book_appointment' && result.confirmed) {
           bookedNow = true;
           Object.assign(session.facts, {
-            patient_name: result.patient_name,
+            client_name: result.client_name,
             test_type: result.test_type,
             date: result.date,
             time_slot: result.time_slot,

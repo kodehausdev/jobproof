@@ -19,7 +19,7 @@ const { redactText, redactObject, containsRestrictedContent } = require('./redac
 // Nothing else — in particular, no payment details ever land here.
 const ALLOWED_APPOINTMENT_FIELDS = new Set([
   'tenant_id',
-  'patient_name',
+  'client_name',
   'phone_number',
   'test_type',
   'date',
