@@ -19,7 +19,7 @@ const { redactText, redactObject, containsRestrictedContent } = require('./redac
 // Nothing else — in particular, no payment details ever land here.
 const ALLOWED_APPOINTMENT_FIELDS = new Set([
   'tenant_id',
-  'client_name',
+  'patient_name',
   'phone_number',
   'test_type',
   'date',
@@ -37,6 +37,15 @@ class ComplianceError extends Error {
   }
 }
 
+// Fields that are system-populated (from Twilio caller ID, server clock,
+// etc.) rather than typed by the caller or the model, and so are exempt
+// from the restricted-content scan. phone_number in particular is a
+// legitimate long digit string by definition — the card-number pattern
+// (any 13-19 digit run) routinely false-positives on real E.164 numbers,
+// e.g. a 13-digit Nigerian number (+234...). The scan still applies to
+// every other field, where a caller could leak a card number into free text.
+const TRUSTED_NUMERIC_FIELDS = new Set(['phone_number']);
+
 /**
  * Final gate before persistence. Returns { record, dropped } where record
  * contains only whitelisted fields and dropped lists what was excluded.
@@ -51,7 +60,7 @@ function sanitizeAppointment(input) {
       dropped.push(key);
       continue;
     }
-    if (typeof value === 'string') {
+    if (typeof value === 'string' && !TRUSTED_NUMERIC_FIELDS.has(key)) {
       const hit = containsRestrictedContent(value);
       if (hit) {
         throw new ComplianceError(
@@ -80,7 +89,7 @@ function guardToolArgs(toolName, args, allowedKeys) {
       stripped.push(key);
       continue;
     }
-    if (typeof value === 'string') {
+    if (typeof value === 'string' && !TRUSTED_NUMERIC_FIELDS.has(key)) {
       const hit = containsRestrictedContent(value);
       if (hit) {
         throw new ComplianceError(

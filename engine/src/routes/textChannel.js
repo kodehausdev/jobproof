@@ -14,6 +14,29 @@ const { safeLog } = require('../compliance/hipaa');
 
 const BATCH_WINDOW_MS = 4000;
 const DEDUPE_MAX = 1000;
+const MAX_TURN_RETRIES = 2;
+const DEFAULT_RETRY_DELAY_MS = 3000;
+
+// Transient failures (rate limit, model overloaded, network blip) are worth
+// a couple of retries before giving up — Gemini itself tells us how long to
+// wait via the RESOURCE_EXHAUSTED retryDelay. A genuine bug or a
+// ComplianceError will fail the same way every time, so those go straight
+// to the fallback message instead of wasting retries.
+function isRetryable(err) {
+  const msg = String(err?.message || '');
+  return /"code":\s*429|RESOURCE_EXHAUSTED|"code":\s*503|UNAVAILABLE|ECONNRESET|ETIMEDOUT/i.test(msg);
+}
+
+// Gemini's 429 body includes retryDelay":"6s" — honor it when present
+// instead of guessing.
+function retryDelayMs(err) {
+  const match = String(err?.message || '').match(/retryDelay"\s*:\s*"(\d+)s"/);
+  return match ? Number(match[1]) * 1000 : DEFAULT_RETRY_DELAY_MS;
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 // CTIA-standard keyword sets, exact whole-message match (case-insensitive,
 // trailing punctuation ignored). Note "cancel" alone opts out per CTIA —
@@ -39,17 +62,29 @@ function createTextChannelRouter({ engine, send, channel, webhookPath, batchWind
   const messageQueue = {};
 
   async function handleTurn(from, to, text) {
-    try {
-      const { reply } = await engine.processTurn({ channel, from, to, text });
-      await send(from, reply, to);
-    } catch (err) {
-      safeLog(`❌ ${channel} turn failed: ${err.message}`);
-      await send(
-        from,
-        'Sorry — something went wrong on our side. Please send that again in a moment.',
-        to
-      );
+    let lastErr;
+    for (let attempt = 0; attempt <= MAX_TURN_RETRIES; attempt++) {
+      try {
+        const { reply } = await engine.processTurn({ channel, from, to, text });
+        await send(from, reply, to);
+        return;
+      } catch (err) {
+        lastErr = err;
+        if (attempt < MAX_TURN_RETRIES && isRetryable(err)) {
+          const delay = retryDelayMs(err);
+          safeLog(`⏳ ${channel} turn failed (attempt ${attempt + 1}/${MAX_TURN_RETRIES + 1}), retrying in ${delay}ms: ${err.message}`);
+          await sleep(delay);
+          continue;
+        }
+        break;
+      }
     }
+    safeLog(`❌ ${channel} turn failed: ${lastErr.message}`);
+    await send(
+      from,
+      'Sorry — something went wrong on our side. Please send that again in a moment.',
+      to
+    );
   }
 
   // Deterministic opt-out/opt-in gate. Returns true when the message was
